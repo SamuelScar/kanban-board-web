@@ -102,6 +102,97 @@
       : boardState;
   }
 
+  function moveColumn(boardState, columnId, targetIndex) {
+    const sourceIndex = boardState.columns.findIndex(function matchColumn(column) {
+      return column.id === columnId;
+    });
+
+    if (sourceIndex === -1) {
+      return boardState;
+    }
+
+    const normalizedTargetIndex = Math.max(
+      0,
+      Math.min(targetIndex, boardState.columns.length - 1)
+    );
+
+    if (sourceIndex === normalizedTargetIndex) {
+      return boardState;
+    }
+
+    const nextColumns = [...boardState.columns];
+    const movedColumn = nextColumns.splice(sourceIndex, 1)[0];
+
+    nextColumns.splice(normalizedTargetIndex, 0, movedColumn);
+
+    return {
+      ...boardState,
+      columns: nextColumns,
+    };
+  }
+
+  function moveCard(
+    boardState,
+    sourceColumnId,
+    cardId,
+    targetColumnId,
+    targetIndex
+  ) {
+    const sourceColumn = boardState.columns.find(function matchSource(column) {
+      return column.id === sourceColumnId;
+    });
+    const targetColumn = boardState.columns.find(function matchTarget(column) {
+      return column.id === targetColumnId;
+    });
+
+    if (!sourceColumn || !targetColumn) {
+      return boardState;
+    }
+
+    const sourceCardIndex = sourceColumn.cards.findIndex(function matchCard(card) {
+      return card.id === cardId;
+    });
+
+    if (sourceCardIndex === -1) {
+      return boardState;
+    }
+
+    if (sourceColumnId === targetColumnId && sourceCardIndex === targetIndex) {
+      return boardState;
+    }
+
+    const nextColumns = boardState.columns.map(function cloneTargetedColumn(column) {
+      if (column.id !== sourceColumnId && column.id !== targetColumnId) {
+        return column;
+      }
+
+      return {
+        ...column,
+        cards: [...column.cards],
+      };
+    });
+
+    const nextSourceColumn = nextColumns.find(function matchNextSource(column) {
+      return column.id === sourceColumnId;
+    });
+    const nextTargetColumn = nextColumns.find(function matchNextTarget(column) {
+      return column.id === targetColumnId;
+    });
+
+    const movedCard = nextSourceColumn.cards.splice(sourceCardIndex, 1)[0];
+    const normalizedTargetIndex = Math.max(
+      0,
+      Math.min(targetIndex, nextTargetColumn.cards.length)
+    );
+
+    nextTargetColumn.cards.splice(normalizedTargetIndex, 0, movedCard);
+
+    return {
+      ...boardState,
+      columns: nextColumns,
+    };
+  }
+
   function updateColumnTitle(boardState, columnId, title) {
     const normalizedTitle = normalizeText(title);
 
@@ -266,6 +357,8 @@
     addCard,
     addColumn,
     createInitialBoardState,
+    moveColumn,
+    moveCard,
     removeCard,
     removeColumn,
     updateCardDescription,

@@ -134,6 +134,7 @@ textarea {
   align-items: flex-start;
   gap: 12px;
   padding: 18px 18px 12px;
+  cursor: grab;
 }
 
 .column__title-input,
@@ -180,10 +181,18 @@ textarea {
   line-height: 1;
 }
 
+.board--column-dragging .column__header {
+  cursor: grabbing;
+}
+
 .column__cards {
   display: grid;
+  flex: 1;
+  min-height: 110px;
   gap: 12px;
   padding: 0 18px 18px;
+  border-radius: 18px;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
 }
 
 .column__add-card-button {
@@ -213,6 +222,10 @@ textarea {
   background: var(--surface-strong);
   box-shadow: var(--shadow-card);
   cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
 }
 
 .card__actions {
@@ -242,6 +255,53 @@ textarea {
   line-height: 1.45;
   font-size: 0.95rem;
   white-space: pre-line;
+}
+
+.board--dragging .column__cards {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(185, 111, 59, 0.14);
+}
+
+.board--dragging .column__cards:empty::before {
+  content: "Solte aqui";
+  display: block;
+  padding: 16px 14px;
+  border: 1px dashed rgba(185, 111, 59, 0.26);
+  border-radius: 14px;
+  color: rgba(101, 89, 77, 0.88);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.card--chosen {
+  box-shadow: 0 16px 26px rgba(53, 42, 29, 0.14);
+}
+
+.card--dragging {
+  transform: rotate(1.6deg);
+  opacity: 0.98;
+}
+
+.card--ghost {
+  border-style: dashed;
+  border-color: rgba(185, 111, 59, 0.34);
+  background: rgba(255, 248, 238, 0.76);
+  box-shadow: none;
+}
+
+.column--chosen {
+  box-shadow: 0 20px 32px rgba(60, 46, 30, 0.16);
+}
+
+.column--dragging {
+  transform: rotate(1deg);
+}
+
+.column--ghost {
+  border-style: dashed;
+  border-color: rgba(185, 111, 59, 0.34);
+  background: rgba(255, 248, 238, 0.5);
+  box-shadow: none;
 }
 
 .board__add-column-button {

@@ -4,6 +4,8 @@
     addCard,
     addColumn,
     createInitialBoardState,
+    moveColumn,
+    moveCard,
     removeCard,
     removeColumn,
     updateCardDescription,
@@ -15,6 +17,8 @@
     confirmColumnRemoval,
     editCardDescription,
   } = Kanban.alerts;
+  const { bindBoardSortable, bindCardSortables, destroyCardSortables } =
+    Kanban.dragDrop;
   const { loadBoardState, saveBoardState } = Kanban.storage;
   const { renderBoard } = Kanban.ui;
 
@@ -26,10 +30,46 @@
     }
 
     let boardState = loadBoardState() || createInitialBoardState();
+    let preventCardOpenUntil = 0;
 
     function syncBoard() {
       renderBoard(boardRoot, boardState);
       saveBoardState(boardState);
+      bindBoardSortable(boardRoot, {
+        onColumnDragStart: function handleColumnDragStart() {
+          boardRoot.classList.add("board--column-dragging");
+        },
+        onColumnDragEnd: function handleColumnDragEnd() {
+          boardRoot.classList.remove("board--column-dragging");
+        },
+        onColumnDrop: function handleColumnDrop(movePayload) {
+          boardState = moveColumn(
+            boardState,
+            movePayload.columnId,
+            movePayload.targetIndex
+          );
+          global.requestAnimationFrame(syncBoard);
+        },
+      });
+      bindCardSortables(boardRoot, {
+        onDragStart: function handleDragStart() {
+          boardRoot.classList.add("board--dragging");
+        },
+        onDragEnd: function handleDragEnd() {
+          boardRoot.classList.remove("board--dragging");
+          preventCardOpenUntil = Date.now() + 250;
+        },
+        onCardDrop: function handleCardDrop(movePayload) {
+          boardState = moveCard(
+            boardState,
+            movePayload.sourceColumnId,
+            movePayload.cardId,
+            movePayload.targetColumnId,
+            movePayload.targetIndex
+          );
+          global.requestAnimationFrame(syncBoard);
+        },
+      });
     }
 
     function findColumnById(columnId) {
@@ -117,6 +157,10 @@
       }
 
       if (event.target instanceof HTMLInputElement) {
+        return;
+      }
+
+      if (Date.now() < preventCardOpenUntil) {
         return;
       }
 
@@ -211,6 +255,7 @@
     boardRoot.addEventListener("click", handleBoardClick);
     boardRoot.addEventListener("change", handleBoardChange);
     boardRoot.addEventListener("keydown", handleBoardKeyDown);
+    global.addEventListener("beforeunload", destroyCardSortables);
     syncBoard();
   }
 

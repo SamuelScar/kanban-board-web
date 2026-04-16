@@ -24,25 +24,6 @@ O projeto sera organizado com base em tres partes principais:
 - Interface: renderizacao visual no DOM
 - Logica: manipulacao de eventos, atualizacao de estado e persistencia
 
-## Estrutura atual
-
-```text
-.
-|-- index.html
-|-- package-lock.json
-|-- package.json
-|-- scripts/
-|   |-- app.js
-|   |-- alerts.js
-|   |-- state.js
-|   |-- storage.js
-|   |-- ui.js
-|   `-- utils.js
-|-- styles/
-|   `-- main.css
-`-- TP1_TEC_WEB.pdf
-```
-
 ## Como executar
 
 Primeiro, instale a dependencia local do projeto:
@@ -58,20 +39,6 @@ npm start
 ```
 
 Depois, abra `http://localhost:8000` no navegador.
-
-Os alertas de confirmacao usam `SweetAlert2` instalado via `npm` e carregado localmente a partir de `node_modules`, sem CDN.
-
-O estado atual da aplicacao contem:
-
-- Layout base do quadro
-- Estado inicial em memoria
-- Renderizacao dinamica das colunas e cards
-- Persistencia inicial com `localStorage`
-- Adicao de cards com botao `+` em cada coluna
-- Adicao de colunas por um controle no fim do board
-- Edicao inline dos titulos de colunas e cards
-- Edicao da descricao dos cards em modal com `SweetAlert2`
-- Remocao de cards e colunas com confirmacao em `SweetAlert2`
 
 ## Documento de referencia
 
