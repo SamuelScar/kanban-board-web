@@ -6,10 +6,15 @@
     createInitialBoardState,
     removeCard,
     removeColumn,
+    updateCardDescription,
     updateCardTitle,
     updateColumnTitle,
   } = Kanban.state;
-  const { confirmCardRemoval, confirmColumnRemoval } = Kanban.alerts;
+  const {
+    confirmCardRemoval,
+    confirmColumnRemoval,
+    editCardDescription,
+  } = Kanban.alerts;
   const { loadBoardState, saveBoardState } = Kanban.storage;
   const { renderBoard } = Kanban.ui;
 
@@ -30,6 +35,18 @@
     function findColumnById(columnId) {
       return boardState.columns.find(function matchColumn(column) {
         return column.id === columnId;
+      });
+    }
+
+    function findCardByIds(columnId, cardId) {
+      const column = findColumnById(columnId);
+
+      if (!column) {
+        return null;
+      }
+
+      return column.cards.find(function matchCard(card) {
+        return card.id === cardId;
       });
     }
 
@@ -96,7 +113,50 @@
       if (addColumnButton instanceof HTMLButtonElement) {
         boardState = addColumn(boardState);
         syncBoard();
+        return;
       }
+
+      if (event.target instanceof HTMLInputElement) {
+        return;
+      }
+
+      const cardElement = event.target.closest(".card");
+
+      if (!(cardElement instanceof HTMLElement)) {
+        return;
+      }
+
+      const columnElement = cardElement.closest("[data-column-id]");
+
+      if (!(columnElement instanceof HTMLElement)) {
+        return;
+      }
+
+      const card = findCardByIds(
+        columnElement.dataset.columnId,
+        cardElement.dataset.cardId
+      );
+
+      if (!card) {
+        return;
+      }
+
+      const nextDescription = await editCardDescription(
+        card.title,
+        card.description || ""
+      );
+
+      if (nextDescription === null) {
+        return;
+      }
+
+      boardState = updateCardDescription(
+        boardState,
+        columnElement.dataset.columnId,
+        card.id,
+        nextDescription
+      );
+      syncBoard();
     }
 
     function handleBoardChange(event) {

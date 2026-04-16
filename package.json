@@ -1,0 +1,13 @@
+{
+  "name": "kanban-board-web",
+  "version": "1.0.0",
+  "description": "Aplicacao web de quadro Kanban inspirada em ferramentas como Trello, desenvolvida apenas com tecnologias nativas da web.",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8000"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "sweetalert2": "^11.26.24"
+  }
+}

@@ -175,6 +175,46 @@
       : boardState;
   }
 
+  function updateCardDescription(boardState, columnId, cardId, description) {
+    const normalizedDescription =
+      typeof description === "string" ? description.trim() : "";
+
+    let didUpdate = false;
+
+    const columns = boardState.columns.map(function mapColumn(column) {
+      if (column.id !== columnId) {
+        return column;
+      }
+
+      const cards = column.cards.map(function mapCard(card) {
+        if (card.id !== cardId || card.description === normalizedDescription) {
+          return card;
+        }
+
+        didUpdate = true;
+
+        return {
+          ...card,
+          description: normalizedDescription,
+        };
+      });
+
+      return didUpdate
+        ? {
+            ...column,
+            cards,
+          }
+        : column;
+    });
+
+    return didUpdate
+      ? {
+          ...boardState,
+          columns,
+        }
+      : boardState;
+  }
+
   function createInitialBoardState() {
     return {
       id: createId("board"),
@@ -228,6 +268,7 @@
     createInitialBoardState,
     removeCard,
     removeColumn,
+    updateCardDescription,
     updateCardTitle,
     updateColumnTitle,
   };

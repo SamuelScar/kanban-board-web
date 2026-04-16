@@ -29,6 +29,8 @@ O projeto sera organizado com base em tres partes principais:
 ```text
 .
 |-- index.html
+|-- package-lock.json
+|-- package.json
 |-- scripts/
 |   |-- app.js
 |   |-- alerts.js
@@ -43,17 +45,21 @@ O projeto sera organizado com base em tres partes principais:
 
 ## Como executar
 
-Para testes rapidos, voce pode abrir o arquivo `index.html` no navegador.
-
-Para desenvolvimento, o ideal e rodar um servidor local simples:
+Primeiro, instale a dependencia local do projeto:
 
 ```bash
-python3 -m http.server 8000
+npm install
+```
+
+Depois, rode o servidor local:
+
+```bash
+npm start
 ```
 
 Depois, abra `http://localhost:8000` no navegador.
 
-Os alertas de confirmacao usam `SweetAlert2` carregado por CDN.
+Os alertas de confirmacao usam `SweetAlert2` instalado via `npm` e carregado localmente a partir de `node_modules`, sem CDN.
 
 O estado atual da aplicacao contem:
 
@@ -64,6 +70,7 @@ O estado atual da aplicacao contem:
 - Adicao de cards com botao `+` em cada coluna
 - Adicao de colunas por um controle no fim do board
 - Edicao inline dos titulos de colunas e cards
+- Edicao da descricao dos cards em modal com `SweetAlert2`
 - Remocao de cards e colunas com confirmacao em `SweetAlert2`
 
 ## Documento de referencia

@@ -9,6 +9,13 @@
     return Promise.resolve(global.confirm(message));
   }
 
+  function fallbackPrompt(message, initialValue) {
+    console.warn(
+      "SweetAlert2 nao foi carregado. Usando prompt nativo como fallback."
+    );
+    return Promise.resolve(global.prompt(message, initialValue));
+  }
+
   function confirmDialog(options) {
     if (!swal) {
       return fallbackConfirm(options.fallbackMessage);
@@ -63,8 +70,42 @@
     });
   }
 
+  function editCardDescription(cardTitle, currentDescription) {
+    if (!swal) {
+      return fallbackPrompt(
+        'Editar descricao do card "' + cardTitle + '":',
+        currentDescription
+      );
+    }
+
+    return swal
+      .fire({
+        title: "Editar descricao",
+        text: 'Card: "' + cardTitle + '"',
+        input: "textarea",
+        inputValue: currentDescription,
+        inputPlaceholder: "Digite a descricao do card",
+        inputAttributes: {
+          "aria-label": "Descricao do card",
+        },
+        showCancelButton: true,
+        reverseButtons: true,
+        focusConfirm: false,
+        confirmButtonText: "Salvar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#a6592b",
+        cancelButtonColor: "#8f6c54",
+        background: "#fffdf8",
+        color: "#2f2a25",
+      })
+      .then(function handleResult(result) {
+        return result.isConfirmed ? result.value : null;
+      });
+  }
+
   Kanban.alerts = {
     confirmCardRemoval,
     confirmColumnRemoval,
+    editCardDescription,
   };
 })(window);
