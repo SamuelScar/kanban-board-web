@@ -216,10 +216,10 @@ textarea {
 
 .card {
   position: relative;
-  padding: 14px;
-  border: 1px solid rgba(80, 63, 46, 0.08);
+  padding: 14px 14px 14px 24px;
+  border: 1px solid var(--card-border, rgba(80, 63, 46, 0.08));
   border-radius: 18px;
-  background: var(--surface-strong);
+  background: var(--card-surface, var(--surface-strong));
   box-shadow: var(--shadow-card);
   cursor: pointer;
   transition:
@@ -230,8 +230,85 @@ textarea {
 
 .card__actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px;
   margin-bottom: 2px;
+}
+
+.card__color-picker {
+  position: relative;
+}
+
+.card__color-toggle {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(80, 63, 46, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.95);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  list-style: none;
+}
+
+.card__color-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.card__color-toggle::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  background: var(--card-color-button-fill, #efe5d8);
+}
+
+.card__color-picker[open] .card__color-toggle {
+  border-color: rgba(185, 111, 59, 0.34);
+}
+
+.card__color-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  min-width: 112px;
+  padding: 10px;
+  border: 1px solid rgba(80, 63, 46, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 252, 247, 0.98);
+  box-shadow: 0 14px 26px rgba(53, 42, 29, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.card__color-option {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid rgba(80, 63, 46, 0.12);
+  border-radius: 999px;
+  background: var(--card-color-option-fill, #efe5d8);
+  cursor: pointer;
+}
+
+.card__color-option[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px rgba(185, 111, 59, 0.18);
+}
+
+.card__color-option--clear {
+  background:
+    linear-gradient(
+      135deg,
+      transparent 0 43%,
+      rgba(185, 111, 59, 0.45) 43% 57%,
+      transparent 57% 100%
+    ),
+    #fff8ee;
 }
 
 .card__remove-button {
@@ -239,7 +316,6 @@ textarea {
   font-size: 0.95rem;
   line-height: 1;
 }
-
 .card__title-input {
   display: block;
   margin: 0 0 8px;
@@ -255,6 +331,18 @@ textarea {
   line-height: 1.45;
   font-size: 0.95rem;
   white-space: pre-line;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 12px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--card-accent, transparent);
+  opacity: 0.45;
 }
 
 .board--dragging .column__cards {

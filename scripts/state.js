@@ -1,6 +1,6 @@
 (function attachState(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
-  const { createId, normalizeText } = Kanban.utils;
+  const { createId, normalizeHexColor, normalizeText } = Kanban.utils;
 
   function createColumn(title) {
     const normalizedTitle = normalizeText(title) || "Nova coluna";
@@ -306,6 +306,52 @@
       : boardState;
   }
 
+  function updateCardColor(boardState, columnId, cardId, color) {
+    const normalizedColor = normalizeHexColor(color);
+    let didUpdate = false;
+
+    const columns = boardState.columns.map(function mapColumn(column) {
+      if (column.id !== columnId) {
+        return column;
+      }
+
+      const cards = column.cards.map(function mapCard(card) {
+        const currentColor = normalizeHexColor(card.color);
+
+        if (card.id !== cardId || currentColor === normalizedColor) {
+          return card;
+        }
+
+        didUpdate = true;
+
+        if (!normalizedColor) {
+          const nextCard = { ...card };
+          delete nextCard.color;
+          return nextCard;
+        }
+
+        return {
+          ...card,
+          color: normalizedColor,
+        };
+      });
+
+      return didUpdate
+        ? {
+            ...column,
+            cards,
+          }
+        : column;
+    });
+
+    return didUpdate
+      ? {
+          ...boardState,
+          columns,
+        }
+      : boardState;
+  }
+
   function createInitialBoardState() {
     return {
       id: createId("board"),
@@ -361,6 +407,7 @@
     moveCard,
     removeCard,
     removeColumn,
+    updateCardColor,
     updateCardDescription,
     updateCardTitle,
     updateColumnTitle,

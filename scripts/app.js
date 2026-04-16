@@ -8,6 +8,7 @@
     moveCard,
     removeCard,
     removeColumn,
+    updateCardColor,
     updateCardDescription,
     updateCardTitle,
     updateColumnTitle,
@@ -91,6 +92,36 @@
     }
 
     async function handleBoardClick(event) {
+      const setCardColorButton = event.target.closest('[data-action="set-card-color"]');
+
+      if (setCardColorButton instanceof HTMLButtonElement) {
+        const columnElement = setCardColorButton.closest("[data-column-id]");
+
+        if (!(columnElement instanceof HTMLElement)) {
+          return;
+        }
+
+        boardState = updateCardColor(
+          boardState,
+          columnElement.dataset.columnId,
+          setCardColorButton.dataset.cardId,
+          setCardColorButton.dataset.colorValue || ""
+        );
+
+        const colorPickerElement = setCardColorButton.closest(".card__color-picker");
+
+        if (colorPickerElement instanceof HTMLDetailsElement) {
+          colorPickerElement.removeAttribute("open");
+        }
+
+        syncBoard();
+        return;
+      }
+
+      if (event.target.closest(".card__color-picker")) {
+        return;
+      }
+
       const removeCardButton = event.target.closest('[data-action="remove-card"]');
 
       if (removeCardButton instanceof HTMLButtonElement) {
@@ -156,7 +187,10 @@
         return;
       }
 
-      if (event.target instanceof HTMLInputElement) {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLSelectElement
+      ) {
         return;
       }
 

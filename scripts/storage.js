@@ -1,6 +1,7 @@
-(function attachStorage(global) {
-  const Kanban = (global.Kanban = global.Kanban || {});
-  const STORAGE_KEY = "kanban-board-web:state";
+  (function attachStorage(global) {
+    const Kanban = (global.Kanban = global.Kanban || {});
+    const STORAGE_KEY = "kanban-board-web:state";
+    const { normalizeHexColor } = Kanban.utils;
 
   function isNonEmptyString(value) {
     return typeof value === "string" && value.trim().length > 0;
@@ -12,7 +13,8 @@
         typeof card === "object" &&
         isNonEmptyString(card.id) &&
         isNonEmptyString(card.title) &&
-        (card.description === undefined || typeof card.description === "string")
+        (card.description === undefined || typeof card.description === "string") &&
+        (card.color === undefined || normalizeHexColor(card.color).length > 0)
     );
   }
 

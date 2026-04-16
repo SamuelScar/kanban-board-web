@@ -1,6 +1,6 @@
-(function attachAlerts(global) {
-  const Kanban = (global.Kanban = global.Kanban || {});
-  const swal = global.Swal;
+  (function attachAlerts(global) {
+    const Kanban = (global.Kanban = global.Kanban || {});
+    const swal = global.Swal;
 
   function fallbackConfirm(message) {
     console.warn(

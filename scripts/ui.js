@@ -1,6 +1,11 @@
-(function attachUi(global) {
-  const Kanban = (global.Kanban = global.Kanban || {});
-  const { formatCardCount } = Kanban.utils;
+  (function attachUi(global) {
+    const Kanban = (global.Kanban = global.Kanban || {});
+  const {
+    cardColorOptions,
+    formatCardCount,
+    normalizeHexColor,
+    tintHexColor,
+  } = Kanban.utils;
 
   function createTitleInput(options) {
     const inputElement = document.createElement("input");
@@ -23,8 +28,65 @@
     cardElement.className = "card";
     cardElement.dataset.cardId = card.id;
 
+    const normalizedCardColor = normalizeHexColor(card.color);
+
+    if (normalizedCardColor) {
+      cardElement.style.setProperty(
+        "--card-surface",
+        tintHexColor(normalizedCardColor, 0.82)
+      );
+      cardElement.style.setProperty(
+        "--card-border",
+        tintHexColor(normalizedCardColor, 0.6)
+      );
+      cardElement.style.setProperty("--card-accent", normalizedCardColor);
+    }
+
     const cardActionsElement = document.createElement("div");
     cardActionsElement.className = "card__actions";
+
+    const colorPickerElement = document.createElement("details");
+    colorPickerElement.className = "card__color-picker";
+
+    const colorToggleElement = document.createElement("summary");
+    colorToggleElement.className = "card__color-toggle";
+    colorToggleElement.setAttribute("aria-label", "Escolher cor do card");
+    colorToggleElement.title = "Escolher cor do card";
+    colorToggleElement.style.setProperty(
+      "--card-color-button-fill",
+      normalizedCardColor || "#efe5d8"
+    );
+
+    const colorMenuElement = document.createElement("div");
+    colorMenuElement.className = "card__color-menu";
+
+    cardColorOptions.forEach(function appendColorOption(option) {
+      const colorOptionButton = document.createElement("button");
+      colorOptionButton.type = "button";
+      colorOptionButton.className = option.value
+        ? "card__color-option"
+        : "card__color-option card__color-option--clear";
+      colorOptionButton.dataset.action = "set-card-color";
+      colorOptionButton.dataset.cardId = card.id;
+      colorOptionButton.dataset.colorValue = option.value;
+      colorOptionButton.setAttribute("aria-label", option.label);
+      colorOptionButton.title = option.label;
+      colorOptionButton.setAttribute(
+        "aria-pressed",
+        String(option.value === normalizedCardColor)
+      );
+
+      if (option.value) {
+        colorOptionButton.style.setProperty(
+          "--card-color-option-fill",
+          option.value
+        );
+      }
+
+      colorMenuElement.append(colorOptionButton);
+    });
+
+    colorPickerElement.append(colorToggleElement, colorMenuElement);
 
     const removeCardButton = document.createElement("button");
     removeCardButton.type = "button";
@@ -45,7 +107,7 @@
       },
     });
 
-    cardActionsElement.append(removeCardButton);
+    cardActionsElement.append(colorPickerElement, removeCardButton);
     cardElement.append(cardActionsElement, titleElement);
 
     if (card.description) {
