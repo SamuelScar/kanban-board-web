@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kanban Board Web</title>
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <p class="app-header__eyebrow">MVP em construcao</p>
+        <h1>Kanban Board Web</h1>
+        <p class="app-header__description">
+          Estrutura inicial do quadro renderizada a partir de um estado em memoria.
+        </p>
+      </header>
+
+      <main>
+        <section
+          class="board"
+          data-board-root
+          aria-label="Quadro Kanban"
+        ></section>
+      </main>
+    </div>
+
+    <script src="./scripts/utils.js" defer></script>
+    <script src="./scripts/state.js" defer></script>
+    <script src="./scripts/storage.js" defer></script>
+    <script src="./scripts/ui.js" defer></script>
+    <script src="./scripts/app.js" defer></script>
+  </body>
+</html>
