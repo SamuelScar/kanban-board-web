@@ -12,11 +12,11 @@
         <p class="app-header__eyebrow">MVP em construcao</p>
         <h1>Kanban Board Web</h1>
         <p class="app-header__description">
-          Estrutura inicial do quadro renderizada a partir de um estado em memoria.
+          Estrutura inicial do quadro com titulos editaveis e acoes inline.
         </p>
       </header>
 
-      <main>
+      <main class="app-main">
         <section
           class="board"
           data-board-root
@@ -25,10 +25,15 @@
       </main>
     </div>
 
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.23.0/sweetalert2.all.min.js"
+      defer
+    ></script>
     <script src="./scripts/utils.js" defer></script>
     <script src="./scripts/state.js" defer></script>
     <script src="./scripts/storage.js" defer></script>
     <script src="./scripts/ui.js" defer></script>
+    <script src="./scripts/alerts.js" defer></script>
     <script src="./scripts/app.js" defer></script>
   </body>
 </html>

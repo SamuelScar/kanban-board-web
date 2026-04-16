@@ -31,6 +31,7 @@ O projeto sera organizado com base em tres partes principais:
 |-- index.html
 |-- scripts/
 |   |-- app.js
+|   |-- alerts.js
 |   |-- state.js
 |   |-- storage.js
 |   |-- ui.js
@@ -42,14 +43,28 @@ O projeto sera organizado com base em tres partes principais:
 
 ## Como executar
 
-Por enquanto, basta abrir o arquivo `index.html` no navegador.
+Para testes rapidos, voce pode abrir o arquivo `index.html` no navegador.
 
-O primeiro incremento da aplicacao contem:
+Para desenvolvimento, o ideal e rodar um servidor local simples:
+
+```bash
+python3 -m http.server 8000
+```
+
+Depois, abra `http://localhost:8000` no navegador.
+
+Os alertas de confirmacao usam `SweetAlert2` carregado por CDN.
+
+O estado atual da aplicacao contem:
 
 - Layout base do quadro
 - Estado inicial em memoria
 - Renderizacao dinamica das colunas e cards
 - Persistencia inicial com `localStorage`
+- Adicao de cards com botao `+` em cada coluna
+- Adicao de colunas por um controle no fim do board
+- Edicao inline dos titulos de colunas e cards
+- Remocao de cards e colunas com confirmacao em `SweetAlert2`
 
 ## Documento de referencia
 

@@ -1,6 +1,179 @@
 (function attachState(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
-  const { createId } = Kanban.utils;
+  const { createId, normalizeText } = Kanban.utils;
+
+  function createColumn(title) {
+    const normalizedTitle = normalizeText(title) || "Nova coluna";
+
+    return {
+      id: createId("column"),
+      title: normalizedTitle,
+      cards: [],
+    };
+  }
+
+  function addColumn(boardState, title) {
+    const newColumn = createColumn(title);
+
+    return {
+      ...boardState,
+      columns: [...boardState.columns, newColumn],
+    };
+  }
+
+  function createCard(title) {
+    const normalizedTitle = normalizeText(title) || "Novo card";
+
+    return {
+      id: createId("card"),
+      title: normalizedTitle,
+      description: "",
+    };
+  }
+
+  function addCard(boardState, columnId, title) {
+    let didUpdate = false;
+
+    const columns = boardState.columns.map(function mapColumn(column) {
+      if (column.id !== columnId) {
+        return column;
+      }
+
+      didUpdate = true;
+
+      return {
+        ...column,
+        cards: [...column.cards, createCard(title)],
+      };
+    });
+
+    return didUpdate
+      ? {
+          ...boardState,
+          columns,
+        }
+      : boardState;
+  }
+
+  function removeColumn(boardState, columnId) {
+    const nextColumns = boardState.columns.filter(function filterColumn(column) {
+      return column.id !== columnId;
+    });
+
+    if (nextColumns.length === boardState.columns.length) {
+      return boardState;
+    }
+
+    return {
+      ...boardState,
+      columns: nextColumns,
+    };
+  }
+
+  function removeCard(boardState, columnId, cardId) {
+    let didUpdate = false;
+
+    const columns = boardState.columns.map(function mapColumn(column) {
+      if (column.id !== columnId) {
+        return column;
+      }
+
+      const nextCards = column.cards.filter(function filterCard(card) {
+        return card.id !== cardId;
+      });
+
+      if (nextCards.length === column.cards.length) {
+        return column;
+      }
+
+      didUpdate = true;
+
+      return {
+        ...column,
+        cards: nextCards,
+      };
+    });
+
+    return didUpdate
+      ? {
+          ...boardState,
+          columns,
+        }
+      : boardState;
+  }
+
+  function updateColumnTitle(boardState, columnId, title) {
+    const normalizedTitle = normalizeText(title);
+
+    if (!normalizedTitle) {
+      return boardState;
+    }
+
+    let didUpdate = false;
+
+    const columns = boardState.columns.map(function mapColumn(column) {
+      if (column.id !== columnId || column.title === normalizedTitle) {
+        return column;
+      }
+
+      didUpdate = true;
+
+      return {
+        ...column,
+        title: normalizedTitle,
+      };
+    });
+
+    return didUpdate
+      ? {
+          ...boardState,
+          columns,
+        }
+      : boardState;
+  }
+
+  function updateCardTitle(boardState, columnId, cardId, title) {
+    const normalizedTitle = normalizeText(title);
+
+    if (!normalizedTitle) {
+      return boardState;
+    }
+
+    let didUpdate = false;
+
+    const columns = boardState.columns.map(function mapColumn(column) {
+      if (column.id !== columnId) {
+        return column;
+      }
+
+      const cards = column.cards.map(function mapCard(card) {
+        if (card.id !== cardId || card.title === normalizedTitle) {
+          return card;
+        }
+
+        didUpdate = true;
+
+        return {
+          ...card,
+          title: normalizedTitle,
+        };
+      });
+
+      return didUpdate
+        ? {
+            ...column,
+            cards,
+          }
+        : column;
+    });
+
+    return didUpdate
+      ? {
+          ...boardState,
+          columns,
+        }
+      : boardState;
+  }
 
   function createInitialBoardState() {
     return {
@@ -50,6 +223,12 @@
   }
 
   Kanban.state = {
+    addCard,
+    addColumn,
     createInitialBoardState,
+    removeCard,
+    removeColumn,
+    updateCardTitle,
+    updateColumnTitle,
   };
 })(window);

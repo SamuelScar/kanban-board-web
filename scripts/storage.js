@@ -2,19 +2,39 @@
   const Kanban = (global.Kanban = global.Kanban || {});
   const STORAGE_KEY = "kanban-board-web:state";
 
+  function isNonEmptyString(value) {
+    return typeof value === "string" && value.trim().length > 0;
+  }
+
+  function isValidCard(card) {
+    return Boolean(
+      card &&
+        typeof card === "object" &&
+        isNonEmptyString(card.id) &&
+        isNonEmptyString(card.title) &&
+        (card.description === undefined || typeof card.description === "string")
+    );
+  }
+
+  function isValidColumn(column) {
+    return Boolean(
+      column &&
+        typeof column === "object" &&
+        isNonEmptyString(column.id) &&
+        isNonEmptyString(column.title) &&
+        Array.isArray(column.cards) &&
+        column.cards.every(isValidCard)
+    );
+  }
+
   function isValidBoardState(value) {
     return Boolean(
       value &&
         typeof value === "object" &&
+        isNonEmptyString(value.id) &&
+        isNonEmptyString(value.title) &&
         Array.isArray(value.columns) &&
-        value.columns.every(function validateColumn(column) {
-          return (
-            column &&
-            typeof column === "object" &&
-            typeof column.title === "string" &&
-            Array.isArray(column.cards)
-          );
-        })
+        value.columns.every(isValidColumn)
     );
   }
 
