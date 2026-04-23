@@ -1,5 +1,5 @@
-  (function attachUi(global) {
-    const Kanban = (global.Kanban = global.Kanban || {});
+(function attachUi(global) {
+  const Kanban = (global.Kanban = global.Kanban || {});
   const {
     cardColorOptions,
     formatCardCount,
@@ -7,49 +7,98 @@
     tintHexColor,
   } = Kanban.utils;
 
+  function createElement(tagName, className) {
+    const element = document.createElement(tagName);
+
+    if (className) {
+      element.className = className;
+    }
+
+    return element;
+  }
+
+  function assignDataset(element, dataset) {
+    Object.entries(dataset || {}).forEach(function assignData(entry) {
+      const [key, value] = entry;
+      element.dataset[key] = value;
+    });
+  }
+
+  function createButton(options) {
+    const buttonElement = createElement("button", options.className);
+    buttonElement.type = "button";
+    buttonElement.textContent = options.textContent || "";
+
+    if (options.ariaLabel) {
+      buttonElement.setAttribute("aria-label", options.ariaLabel);
+    }
+
+    if (options.title) {
+      buttonElement.title = options.title;
+    }
+
+    assignDataset(buttonElement, options.dataset);
+    return buttonElement;
+  }
+
   function createTitleInput(options) {
-    const inputElement = document.createElement("input");
+    const inputElement = createElement("input", options.className);
     inputElement.type = "text";
-    inputElement.className = options.className;
     inputElement.value = options.value;
     inputElement.maxLength = options.maxLength;
     inputElement.setAttribute("aria-label", options.ariaLabel);
-
-    Object.entries(options.dataset).forEach(function assignData(entry) {
-      const [key, value] = entry;
-      inputElement.dataset[key] = value;
-    });
-
+    assignDataset(inputElement, options.dataset);
     return inputElement;
   }
 
-  function createCardElement(card) {
-    const cardElement = document.createElement("article");
-    cardElement.className = "card";
-    cardElement.dataset.cardId = card.id;
-
-    const normalizedCardColor = normalizeHexColor(card.color);
-
-    if (normalizedCardColor) {
-      cardElement.style.setProperty(
-        "--card-surface",
-        tintHexColor(normalizedCardColor, 0.82)
-      );
-      cardElement.style.setProperty(
-        "--card-border",
-        tintHexColor(normalizedCardColor, 0.6)
-      );
-      cardElement.style.setProperty("--card-accent", normalizedCardColor);
+  function applyCardColorTheme(cardElement, normalizedCardColor) {
+    if (!normalizedCardColor) {
+      return;
     }
 
-    const cardActionsElement = document.createElement("div");
-    cardActionsElement.className = "card__actions";
+    cardElement.style.setProperty(
+      "--card-surface",
+      tintHexColor(normalizedCardColor, 0.82)
+    );
+    cardElement.style.setProperty(
+      "--card-border",
+      tintHexColor(normalizedCardColor, 0.6)
+    );
+    cardElement.style.setProperty("--card-accent", normalizedCardColor);
+  }
 
-    const colorPickerElement = document.createElement("details");
-    colorPickerElement.className = "card__color-picker";
+  function createColorOptionButton(cardId, option, normalizedCardColor) {
+    const className = option.value
+      ? "card__color-option"
+      : "card__color-option card__color-option--clear";
+    const buttonElement = createButton({
+      className,
+      ariaLabel: option.label,
+      title: option.label,
+      dataset: {
+        action: "set-card-color",
+        cardId,
+        colorValue: option.value,
+      },
+    });
 
-    const colorToggleElement = document.createElement("summary");
-    colorToggleElement.className = "card__color-toggle";
+    buttonElement.setAttribute(
+      "aria-pressed",
+      String(option.value === normalizedCardColor)
+    );
+
+    if (option.value) {
+      buttonElement.style.setProperty("--card-color-option-fill", option.value);
+    }
+
+    return buttonElement;
+  }
+
+  function createColorPicker(cardId, normalizedCardColor) {
+    const colorPickerElement = createElement("details", "card__color-picker");
+    const colorToggleElement = createElement("summary", "card__color-toggle");
+    const colorMenuElement = createElement("div", "card__color-menu");
+
     colorToggleElement.setAttribute("aria-label", "Escolher cor do card");
     colorToggleElement.title = "Escolher cor do card";
     colorToggleElement.style.setProperty(
@@ -57,45 +106,49 @@
       normalizedCardColor || "#efe5d8"
     );
 
-    const colorMenuElement = document.createElement("div");
-    colorMenuElement.className = "card__color-menu";
-
     cardColorOptions.forEach(function appendColorOption(option) {
-      const colorOptionButton = document.createElement("button");
-      colorOptionButton.type = "button";
-      colorOptionButton.className = option.value
-        ? "card__color-option"
-        : "card__color-option card__color-option--clear";
-      colorOptionButton.dataset.action = "set-card-color";
-      colorOptionButton.dataset.cardId = card.id;
-      colorOptionButton.dataset.colorValue = option.value;
-      colorOptionButton.setAttribute("aria-label", option.label);
-      colorOptionButton.title = option.label;
-      colorOptionButton.setAttribute(
-        "aria-pressed",
-        String(option.value === normalizedCardColor)
+      colorMenuElement.append(
+        createColorOptionButton(cardId, option, normalizedCardColor)
       );
-
-      if (option.value) {
-        colorOptionButton.style.setProperty(
-          "--card-color-option-fill",
-          option.value
-        );
-      }
-
-      colorMenuElement.append(colorOptionButton);
     });
 
     colorPickerElement.append(colorToggleElement, colorMenuElement);
+    return colorPickerElement;
+  }
 
-    const removeCardButton = document.createElement("button");
-    removeCardButton.type = "button";
-    removeCardButton.className = "card__remove-button";
-    removeCardButton.dataset.action = "remove-card";
-    removeCardButton.dataset.cardId = card.id;
-    removeCardButton.setAttribute("aria-label", "Excluir card");
-    removeCardButton.textContent = "x";
+  function createCardActions(cardId, normalizedCardColor) {
+    const cardActionsElement = createElement("div", "card__actions");
+    const removeCardButton = createButton({
+      className: "card__remove-button",
+      textContent: "x",
+      ariaLabel: "Excluir card",
+      dataset: {
+        action: "remove-card",
+        cardId,
+      },
+    });
 
+    cardActionsElement.append(
+      createColorPicker(cardId, normalizedCardColor),
+      removeCardButton
+    );
+
+    return cardActionsElement;
+  }
+
+  function createCardDescription(description) {
+    if (!description) {
+      return null;
+    }
+
+    const descriptionElement = createElement("p", "card__description");
+    descriptionElement.textContent = description;
+    return descriptionElement;
+  }
+
+  function createCardElement(card) {
+    const cardElement = createElement("article", "card");
+    const normalizedCardColor = normalizeHexColor(card.color);
     const titleElement = createTitleInput({
       className: "card__title-input",
       value: card.title,
@@ -106,30 +159,22 @@
         cardId: card.id,
       },
     });
+    const descriptionElement = createCardDescription(card.description);
 
-    cardActionsElement.append(colorPickerElement, removeCardButton);
-    cardElement.append(cardActionsElement, titleElement);
+    cardElement.dataset.cardId = card.id;
+    applyCardColorTheme(cardElement, normalizedCardColor);
+    cardElement.append(createCardActions(card.id, normalizedCardColor), titleElement);
 
-    if (card.description) {
-      const descriptionElement = document.createElement("p");
-      descriptionElement.className = "card__description";
-      descriptionElement.textContent = card.description;
+    if (descriptionElement) {
       cardElement.append(descriptionElement);
     }
 
     return cardElement;
   }
 
-  function createColumnElement(column) {
-    const columnElement = document.createElement("article");
-    columnElement.className = "column";
-    columnElement.dataset.columnId = column.id;
-
-    const headerElement = document.createElement("header");
-    headerElement.className = "column__header";
-
-    const titleWrapperElement = document.createElement("div");
-
+  function createColumnHeader(column) {
+    const headerElement = createElement("header", "column__header");
+    const titleWrapperElement = createElement("div");
     const titleElement = createTitleInput({
       className: "column__title-input",
       value: column.title,
@@ -140,55 +185,71 @@
         columnId: column.id,
       },
     });
+    const metaElement = createElement("p", "column__meta");
+    const removeColumnButton = createButton({
+      className: "column__remove-button",
+      textContent: "x",
+      ariaLabel: "Excluir coluna",
+      dataset: {
+        action: "remove-column",
+        columnId: column.id,
+      },
+    });
 
-    const metaElement = document.createElement("p");
-    metaElement.className = "column__meta";
     metaElement.textContent = formatCardCount(column.cards.length);
-
-    const removeColumnButton = document.createElement("button");
-    removeColumnButton.type = "button";
-    removeColumnButton.className = "column__remove-button";
-    removeColumnButton.dataset.action = "remove-column";
-    removeColumnButton.dataset.columnId = column.id;
-    removeColumnButton.setAttribute("aria-label", "Excluir coluna");
-    removeColumnButton.textContent = "x";
-
     titleWrapperElement.append(titleElement, metaElement);
     headerElement.append(titleWrapperElement, removeColumnButton);
 
-    const cardsElement = document.createElement("div");
-    cardsElement.className = "column__cards";
+    return headerElement;
+  }
+
+  function createCardsContainer(column) {
+    const cardsElement = createElement("div", "column__cards");
     cardsElement.dataset.columnId = column.id;
 
     column.cards.forEach(function appendCard(card) {
       cardsElement.append(createCardElement(card));
     });
 
-    const addCardButton = document.createElement("button");
-    addCardButton.type = "button";
-    addCardButton.className = "column__add-card-button";
-    addCardButton.dataset.action = "add-card";
-    addCardButton.dataset.columnId = column.id;
-    addCardButton.setAttribute("aria-label", "Adicionar card");
-    addCardButton.textContent = "+";
+    return cardsElement;
+  }
 
-    columnElement.append(headerElement, cardsElement, addCardButton);
+  function createAddCardButton(columnId) {
+    return createButton({
+      className: "column__add-card-button",
+      textContent: "+",
+      ariaLabel: "Adicionar card",
+      dataset: {
+        action: "add-card",
+        columnId,
+      },
+    });
+  }
+
+  function createColumnElement(column) {
+    const columnElement = createElement("article", "column");
+
+    columnElement.dataset.columnId = column.id;
+    columnElement.append(
+      createColumnHeader(column),
+      createCardsContainer(column),
+      createAddCardButton(column.id)
+    );
+
     return columnElement;
   }
 
   function createAddColumnElement() {
-    const addColumnButton = document.createElement("button");
-    addColumnButton.type = "button";
-    addColumnButton.className = "board__add-column-button";
-    addColumnButton.dataset.action = "add-column";
-    addColumnButton.textContent = "+ Nova coluna";
-
-    return addColumnButton;
+    return createButton({
+      className: "board__add-column-button",
+      textContent: "+ Nova coluna",
+      dataset: {
+        action: "add-column",
+      },
+    });
   }
 
   function renderBoard(rootElement, boardState) {
-    rootElement.replaceChildren();
-
     const fragment = document.createDocumentFragment();
 
     boardState.columns.forEach(function appendColumn(column) {
@@ -196,7 +257,7 @@
     });
 
     fragment.append(createAddColumnElement());
-    rootElement.append(fragment);
+    rootElement.replaceChildren(fragment);
   }
 
   Kanban.ui = {

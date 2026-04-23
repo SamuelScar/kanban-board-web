@@ -32,44 +32,65 @@
     let boardState = loadBoardState() || createInitialBoardState();
     let preventCardOpenUntil = 0;
 
-    function syncBoard() {
+    function queueSyncBoard() {
+      global.requestAnimationFrame(syncBoard);
+    }
+
+    function renderAndPersistBoard() {
       renderBoard(boardRoot, boardState);
       saveBoardState(boardState);
+    }
+
+    function handleColumnDragStart() {
+      boardRoot.classList.add("board--column-dragging");
+    }
+
+    function handleColumnDragEnd() {
+      boardRoot.classList.remove("board--column-dragging");
+    }
+
+    function handleColumnDrop(movePayload) {
+      boardState = moveColumn(boardState, movePayload.columnId, movePayload.targetIndex);
+      queueSyncBoard();
+    }
+
+    function handleCardDragStart() {
+      boardRoot.classList.add("board--dragging");
+    }
+
+    function handleCardDragEnd() {
+      boardRoot.classList.remove("board--dragging");
+      preventCardOpenUntil = Date.now() + 250;
+    }
+
+    function handleCardDrop(movePayload) {
+      boardState = moveCard(
+        boardState,
+        movePayload.sourceColumnId,
+        movePayload.cardId,
+        movePayload.targetColumnId,
+        movePayload.targetIndex
+      );
+      queueSyncBoard();
+    }
+
+    function bindBoardInteractions() {
       bindBoardSortable(boardRoot, {
-        onColumnDragStart: function handleColumnDragStart() {
-          boardRoot.classList.add("board--column-dragging");
-        },
-        onColumnDragEnd: function handleColumnDragEnd() {
-          boardRoot.classList.remove("board--column-dragging");
-        },
-        onColumnDrop: function handleColumnDrop(movePayload) {
-          boardState = moveColumn(
-            boardState,
-            movePayload.columnId,
-            movePayload.targetIndex
-          );
-          global.requestAnimationFrame(syncBoard);
-        },
+        onColumnDragStart: handleColumnDragStart,
+        onColumnDragEnd: handleColumnDragEnd,
+        onColumnDrop: handleColumnDrop,
       });
+
       bindCardSortables(boardRoot, {
-        onDragStart: function handleDragStart() {
-          boardRoot.classList.add("board--dragging");
-        },
-        onDragEnd: function handleDragEnd() {
-          boardRoot.classList.remove("board--dragging");
-          preventCardOpenUntil = Date.now() + 250;
-        },
-        onCardDrop: function handleCardDrop(movePayload) {
-          boardState = moveCard(
-            boardState,
-            movePayload.sourceColumnId,
-            movePayload.cardId,
-            movePayload.targetColumnId,
-            movePayload.targetIndex
-          );
-          global.requestAnimationFrame(syncBoard);
-        },
+        onDragStart: handleCardDragStart,
+        onDragEnd: handleCardDragEnd,
+        onCardDrop: handleCardDrop,
       });
+    }
+
+    function syncBoard() {
+      renderAndPersistBoard();
+      bindBoardInteractions();
     }
 
     function findColumnById(columnId) {
@@ -90,139 +111,158 @@
       });
     }
 
-    async function handleBoardClick(event) {
-      const setCardColorButton = event.target.closest('[data-action="set-card-color"]');
+    function getClosestElement(target, selector) {
+      if (!(target instanceof Element)) {
+        return null;
+      }
 
-      if (setCardColorButton instanceof HTMLButtonElement) {
-        const columnElement = setCardColorButton.closest("[data-column-id]");
+      const element = target.closest(selector);
+      return element instanceof HTMLElement ? element : null;
+    }
 
-        if (!(columnElement instanceof HTMLElement)) {
-          return;
-        }
+    function getClosestButton(target, selector) {
+      const element = getClosestElement(target, selector);
+      return element instanceof HTMLButtonElement ? element : null;
+    }
 
-        boardState = updateCardColor(
-          boardState,
-          columnElement.dataset.columnId,
-          setCardColorButton.dataset.cardId,
-          setCardColorButton.dataset.colorValue || ""
-        );
+    function getColumnElement(target) {
+      return getClosestElement(target, "[data-column-id]");
+    }
 
-        const colorPickerElement = setCardColorButton.closest(".card__color-picker");
+    function getCardContext(target) {
+      const cardElement = getClosestElement(target, ".card");
 
-        if (colorPickerElement instanceof HTMLDetailsElement) {
-          colorPickerElement.removeAttribute("open");
-        }
+      if (!cardElement) {
+        return null;
+      }
 
-        syncBoard();
+      const columnElement = getColumnElement(cardElement);
+
+      if (!columnElement) {
+        return null;
+      }
+
+      const card = findCardByIds(columnElement.dataset.columnId, cardElement.dataset.cardId);
+
+      return card
+        ? {
+            card,
+            cardElement,
+            columnElement,
+          }
+        : null;
+    }
+
+    function handleSetCardColorClick(buttonElement) {
+      const columnElement = getColumnElement(buttonElement);
+
+      if (!columnElement) {
         return;
       }
 
-      if (event.target.closest(".card__color-picker")) {
-        return;
-      }
-
-      const removeCardButton = event.target.closest('[data-action="remove-card"]');
-
-      if (removeCardButton instanceof HTMLButtonElement) {
-        const columnElement = removeCardButton.closest("[data-column-id]");
-
-        if (!(columnElement instanceof HTMLElement)) {
-          return;
-        }
-
-        const shouldRemoveCard = await confirmCardRemoval(removeCardButton);
-
-        if (!shouldRemoveCard) {
-          return;
-        }
-
-        boardState = removeCard(
-          boardState,
-          columnElement.dataset.columnId,
-          removeCardButton.dataset.cardId
-        );
-        syncBoard();
-        return;
-      }
-
-      const removeColumnButton = event.target.closest(
-        '[data-action="remove-column"]'
+      boardState = updateCardColor(
+        boardState,
+        columnElement.dataset.columnId,
+        buttonElement.dataset.cardId,
+        buttonElement.dataset.colorValue || ""
       );
 
-      if (removeColumnButton instanceof HTMLButtonElement) {
-        const column = findColumnById(removeColumnButton.dataset.columnId);
+      const colorPickerElement = getClosestElement(buttonElement, ".card__color-picker");
 
-        if (!column) {
+      if (colorPickerElement instanceof HTMLDetailsElement) {
+        colorPickerElement.removeAttribute("open");
+      }
+
+      syncBoard();
+    }
+
+    async function handleRemoveCardClick(buttonElement) {
+      const columnElement = getColumnElement(buttonElement);
+
+      if (!columnElement) {
+        return;
+      }
+
+      const shouldRemoveCard = await confirmCardRemoval(buttonElement);
+
+      if (!shouldRemoveCard) {
+        return;
+      }
+
+      boardState = removeCard(
+        boardState,
+        columnElement.dataset.columnId,
+        buttonElement.dataset.cardId
+      );
+      syncBoard();
+    }
+
+    async function handleRemoveColumnClick(buttonElement) {
+      const column = findColumnById(buttonElement.dataset.columnId);
+
+      if (!column) {
+        return;
+      }
+
+      const shouldRemoveColumn = await confirmColumnRemoval(
+        column.title,
+        column.cards.length,
+        buttonElement
+      );
+
+      if (!shouldRemoveColumn) {
+        return;
+      }
+
+      boardState = removeColumn(boardState, column.id);
+      syncBoard();
+    }
+
+    function handleAddCardClick(buttonElement) {
+      boardState = addCard(boardState, buttonElement.dataset.columnId);
+      syncBoard();
+    }
+
+    function handleAddColumnClick() {
+      boardState = addColumn(boardState);
+      syncBoard();
+    }
+
+    async function handleActionClick(buttonElement) {
+      switch (buttonElement.dataset.action) {
+        case "set-card-color":
+          handleSetCardColorClick(buttonElement);
           return;
-        }
-
-        const shouldRemoveColumn = await confirmColumnRemoval(
-          column.title,
-          column.cards.length,
-          removeColumnButton
-        );
-
-        if (!shouldRemoveColumn) {
+        case "remove-card":
+          await handleRemoveCardClick(buttonElement);
           return;
-        }
-
-        boardState = removeColumn(boardState, column.id);
-        syncBoard();
-        return;
+        case "remove-column":
+          await handleRemoveColumnClick(buttonElement);
+          return;
+        case "add-card":
+          handleAddCardClick(buttonElement);
+          return;
+        case "add-column":
+          handleAddColumnClick();
+          return;
       }
+    }
 
-      const addCardButton = event.target.closest('[data-action="add-card"]');
-
-      if (addCardButton instanceof HTMLButtonElement) {
-        boardState = addCard(boardState, addCardButton.dataset.columnId);
-        syncBoard();
-        return;
-      }
-
-      const addColumnButton = event.target.closest('[data-action="add-column"]');
-
-      if (addColumnButton instanceof HTMLButtonElement) {
-        boardState = addColumn(boardState);
-        syncBoard();
-        return;
-      }
-
-      if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLSelectElement
-      ) {
-        return;
-      }
-
+    async function handleCardOpen(target) {
       if (Date.now() < preventCardOpenUntil) {
         return;
       }
 
-      const cardElement = event.target.closest(".card");
+      const cardContext = getCardContext(target);
 
-      if (!(cardElement instanceof HTMLElement)) {
-        return;
-      }
-
-      const columnElement = cardElement.closest("[data-column-id]");
-
-      if (!(columnElement instanceof HTMLElement)) {
-        return;
-      }
-
-      const card = findCardByIds(
-        columnElement.dataset.columnId,
-        cardElement.dataset.cardId
-      );
-
-      if (!card) {
+      if (!cardContext) {
         return;
       }
 
       const nextDescription = await editCardDescription(
-        card.title,
-        card.description || "",
-        cardElement
+        cardContext.card.title,
+        cardContext.card.description || "",
+        cardContext.cardElement
       );
 
       if (nextDescription === null) {
@@ -231,9 +271,57 @@
 
       boardState = updateCardDescription(
         boardState,
-        columnElement.dataset.columnId,
-        card.id,
+        cardContext.columnElement.dataset.columnId,
+        cardContext.card.id,
         nextDescription
+      );
+      syncBoard();
+    }
+
+    async function handleBoardClick(event) {
+      const target = event.target;
+      const actionButton = getClosestButton(target, "[data-action]");
+
+      if (actionButton) {
+        await handleActionClick(actionButton);
+        return;
+      }
+
+      if (getClosestElement(target, ".card__color-picker")) {
+        return;
+      }
+
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+
+      await handleCardOpen(target);
+    }
+
+    function handleColumnTitleChange(inputElement) {
+      boardState = updateColumnTitle(
+        boardState,
+        inputElement.dataset.columnId,
+        inputElement.value
+      );
+      syncBoard();
+    }
+
+    function handleCardTitleChange(inputElement) {
+      const columnElement = getColumnElement(inputElement);
+
+      if (!columnElement) {
+        return;
+      }
+
+      boardState = updateCardTitle(
+        boardState,
+        columnElement.dataset.columnId,
+        inputElement.dataset.cardId,
+        inputElement.value
       );
       syncBoard();
     }
@@ -246,30 +334,12 @@
       }
 
       if (target.dataset.columnTitleInput === "true") {
-        boardState = updateColumnTitle(
-          boardState,
-          target.dataset.columnId,
-          target.value
-        );
-        syncBoard();
+        handleColumnTitleChange(target);
         return;
       }
 
       if (target.dataset.cardTitleInput === "true") {
-        const columnElement = target.closest("[data-column-id]");
-
-        if (!(columnElement instanceof HTMLElement)) {
-          return;
-        }
-
-        boardState = updateCardTitle(
-          boardState,
-          columnElement.dataset.columnId,
-          target.dataset.cardId,
-          target.value
-        );
-        syncBoard();
-        return;
+        handleCardTitleChange(target);
       }
     }
 
