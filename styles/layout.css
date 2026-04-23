@@ -20,26 +20,10 @@
   backdrop-filter: blur(12px);
 }
 
-.app-header__eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
 .app-header h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.05;
-}
-
-.app-header__description {
-  max-width: 56ch;
-  margin: 12px 0 0;
-  color: var(--text-muted);
-  line-height: 1.5;
 }
 
 .app-main {

@@ -18,8 +18,7 @@
     confirmColumnRemoval,
   } = Kanban.alerts;
   const { editCardDescription } = Kanban.modal;
-  const { bindBoardSortable, bindCardSortables, destroyCardSortables } =
-    Kanban.dragDrop;
+  const { bindBoardSortable, bindCardSortables, destroySortables } = Kanban.dragDrop;
   const { loadBoardState, saveBoardState } = Kanban.storage;
   const { renderBoard } = Kanban.ui;
 
@@ -290,7 +289,7 @@
     boardRoot.addEventListener("click", handleBoardClick);
     boardRoot.addEventListener("change", handleBoardChange);
     boardRoot.addEventListener("keydown", handleBoardKeyDown);
-    global.addEventListener("beforeunload", destroyCardSortables);
+    global.addEventListener("beforeunload", destroySortables);
     syncBoard();
   }
 

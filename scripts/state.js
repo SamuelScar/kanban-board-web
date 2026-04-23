@@ -31,7 +31,7 @@
     };
   }
 
-  function addCard(boardState, columnId, title) {
+  function withUpdatedColumn(boardState, columnId, updater) {
     let didUpdate = false;
 
     const columns = boardState.columns.map(function mapColumn(column) {
@@ -39,12 +39,14 @@
         return column;
       }
 
-      didUpdate = true;
+      const nextColumn = updater(column);
 
-      return {
-        ...column,
-        cards: [...column.cards, createCard(title)],
-      };
+      if (nextColumn === column) {
+        return column;
+      }
+
+      didUpdate = true;
+      return nextColumn;
     });
 
     return didUpdate
@@ -53,6 +55,43 @@
           columns,
         }
       : boardState;
+  }
+
+  function withUpdatedCard(boardState, columnId, cardId, updater) {
+    return withUpdatedColumn(boardState, columnId, function updateColumnCards(column) {
+      let didUpdate = false;
+
+      const cards = column.cards.map(function mapCard(card) {
+        if (card.id !== cardId) {
+          return card;
+        }
+
+        const nextCard = updater(card);
+
+        if (nextCard === card) {
+          return card;
+        }
+
+        didUpdate = true;
+        return nextCard;
+      });
+
+      return didUpdate
+        ? {
+            ...column,
+            cards,
+          }
+        : column;
+    });
+  }
+
+  function addCard(boardState, columnId, title) {
+    return withUpdatedColumn(boardState, columnId, function appendCard(column) {
+      return {
+        ...column,
+        cards: [...column.cards, createCard(title)],
+      };
+    });
   }
 
   function removeColumn(boardState, columnId) {
@@ -60,46 +99,27 @@
       return column.id !== columnId;
     });
 
-    if (nextColumns.length === boardState.columns.length) {
-      return boardState;
-    }
-
-    return {
-      ...boardState,
-      columns: nextColumns,
-    };
+    return nextColumns.length === boardState.columns.length
+      ? boardState
+      : {
+          ...boardState,
+          columns: nextColumns,
+        };
   }
 
   function removeCard(boardState, columnId, cardId) {
-    let didUpdate = false;
-
-    const columns = boardState.columns.map(function mapColumn(column) {
-      if (column.id !== columnId) {
-        return column;
-      }
-
+    return withUpdatedColumn(boardState, columnId, function removeColumnCard(column) {
       const nextCards = column.cards.filter(function filterCard(card) {
         return card.id !== cardId;
       });
 
-      if (nextCards.length === column.cards.length) {
-        return column;
-      }
-
-      didUpdate = true;
-
-      return {
-        ...column,
-        cards: nextCards,
-      };
+      return nextCards.length === column.cards.length
+        ? column
+        : {
+            ...column,
+            cards: nextCards,
+          };
     });
-
-    return didUpdate
-      ? {
-          ...boardState,
-          columns,
-        }
-      : boardState;
   }
 
   function moveColumn(boardState, columnId, targetIndex) {
@@ -138,17 +158,18 @@
     targetColumnId,
     targetIndex
   ) {
-    const sourceColumn = boardState.columns.find(function matchSource(column) {
+    const sourceColumnIndex = boardState.columns.findIndex(function matchSource(column) {
       return column.id === sourceColumnId;
     });
-    const targetColumn = boardState.columns.find(function matchTarget(column) {
+    const targetColumnIndex = boardState.columns.findIndex(function matchTarget(column) {
       return column.id === targetColumnId;
     });
 
-    if (!sourceColumn || !targetColumn) {
+    if (sourceColumnIndex === -1 || targetColumnIndex === -1) {
       return boardState;
     }
 
+    const sourceColumn = boardState.columns[sourceColumnIndex];
     const sourceCardIndex = sourceColumn.cards.findIndex(function matchCard(card) {
       return card.id === cardId;
     });
@@ -161,23 +182,21 @@
       return boardState;
     }
 
-    const nextColumns = boardState.columns.map(function cloneTargetedColumn(column) {
-      if (column.id !== sourceColumnId && column.id !== targetColumnId) {
-        return column;
-      }
+    const nextColumns = [...boardState.columns];
+    const nextSourceColumn = {
+      ...nextColumns[sourceColumnIndex],
+      cards: [...nextColumns[sourceColumnIndex].cards],
+    };
+    const nextTargetColumn =
+      sourceColumnIndex === targetColumnIndex
+        ? nextSourceColumn
+        : {
+            ...nextColumns[targetColumnIndex],
+            cards: [...nextColumns[targetColumnIndex].cards],
+          };
 
-      return {
-        ...column,
-        cards: [...column.cards],
-      };
-    });
-
-    const nextSourceColumn = nextColumns.find(function matchNextSource(column) {
-      return column.id === sourceColumnId;
-    });
-    const nextTargetColumn = nextColumns.find(function matchNextTarget(column) {
-      return column.id === targetColumnId;
-    });
+    nextColumns[sourceColumnIndex] = nextSourceColumn;
+    nextColumns[targetColumnIndex] = nextTargetColumn;
 
     const movedCard = nextSourceColumn.cards.splice(sourceCardIndex, 1)[0];
     const normalizedTargetIndex = Math.max(
@@ -200,27 +219,14 @@
       return boardState;
     }
 
-    let didUpdate = false;
-
-    const columns = boardState.columns.map(function mapColumn(column) {
-      if (column.id !== columnId || column.title === normalizedTitle) {
-        return column;
-      }
-
-      didUpdate = true;
-
-      return {
-        ...column,
-        title: normalizedTitle,
-      };
+    return withUpdatedColumn(boardState, columnId, function updateColumn(column) {
+      return column.title === normalizedTitle
+        ? column
+        : {
+            ...column,
+            title: normalizedTitle,
+          };
     });
-
-    return didUpdate
-      ? {
-          ...boardState,
-          columns,
-        }
-      : boardState;
   }
 
   function updateCardTitle(boardState, columnId, cardId, title) {
@@ -230,132 +236,59 @@
       return boardState;
     }
 
-    let didUpdate = false;
-
-    const columns = boardState.columns.map(function mapColumn(column) {
-      if (column.id !== columnId) {
-        return column;
-      }
-
-      const cards = column.cards.map(function mapCard(card) {
-        if (card.id !== cardId || card.title === normalizedTitle) {
-          return card;
-        }
-
-        didUpdate = true;
-
-        return {
-          ...card,
-          title: normalizedTitle,
-        };
-      });
-
-      return didUpdate
-        ? {
-            ...column,
-            cards,
-          }
-        : column;
+    return withUpdatedCard(boardState, columnId, cardId, function updateTitle(card) {
+      return card.title === normalizedTitle
+        ? card
+        : {
+            ...card,
+            title: normalizedTitle,
+          };
     });
-
-    return didUpdate
-      ? {
-          ...boardState,
-          columns,
-        }
-      : boardState;
   }
 
   function updateCardDescription(boardState, columnId, cardId, description) {
-    const normalizedDescription =
-      typeof description === "string" ? description.trim() : "";
+    const normalizedDescription = normalizeText(description);
 
-    let didUpdate = false;
-
-    const columns = boardState.columns.map(function mapColumn(column) {
-      if (column.id !== columnId) {
-        return column;
+    return withUpdatedCard(
+      boardState,
+      columnId,
+      cardId,
+      function updateDescription(card) {
+        return card.description === normalizedDescription
+          ? card
+          : {
+              ...card,
+              description: normalizedDescription,
+            };
       }
-
-      const cards = column.cards.map(function mapCard(card) {
-        if (card.id !== cardId || card.description === normalizedDescription) {
-          return card;
-        }
-
-        didUpdate = true;
-
-        return {
-          ...card,
-          description: normalizedDescription,
-        };
-      });
-
-      return didUpdate
-        ? {
-            ...column,
-            cards,
-          }
-        : column;
-    });
-
-    return didUpdate
-      ? {
-          ...boardState,
-          columns,
-        }
-      : boardState;
+    );
   }
 
   function updateCardColor(boardState, columnId, cardId, color) {
     const normalizedColor = normalizeHexColor(color);
-    let didUpdate = false;
 
-    const columns = boardState.columns.map(function mapColumn(column) {
-      if (column.id !== columnId) {
-        return column;
+    return withUpdatedCard(boardState, columnId, cardId, function updateColor(card) {
+      const currentColor = normalizeHexColor(card.color);
+
+      if (currentColor === normalizedColor) {
+        return card;
       }
 
-      const cards = column.cards.map(function mapCard(card) {
-        const currentColor = normalizeHexColor(card.color);
+      if (!normalizedColor) {
+        const nextCard = { ...card };
+        delete nextCard.color;
+        return nextCard;
+      }
 
-        if (card.id !== cardId || currentColor === normalizedColor) {
-          return card;
-        }
-
-        didUpdate = true;
-
-        if (!normalizedColor) {
-          const nextCard = { ...card };
-          delete nextCard.color;
-          return nextCard;
-        }
-
-        return {
-          ...card,
-          color: normalizedColor,
-        };
-      });
-
-      return didUpdate
-        ? {
-            ...column,
-            cards,
-          }
-        : column;
+      return {
+        ...card,
+        color: normalizedColor,
+      };
     });
-
-    return didUpdate
-      ? {
-          ...boardState,
-          columns,
-        }
-      : boardState;
   }
 
   function createInitialBoardState() {
     return {
-      id: createId("board"),
-      title: "Quadro Inicial",
       columns: [
         {
           id: createId("column"),

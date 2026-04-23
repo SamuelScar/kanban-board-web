@@ -1,7 +1,7 @@
-  (function attachStorage(global) {
-    const Kanban = (global.Kanban = global.Kanban || {});
-    const STORAGE_KEY = "kanban-board-web:state";
-    const { normalizeHexColor } = Kanban.utils;
+(function attachStorage(global) {
+  const Kanban = (global.Kanban = global.Kanban || {});
+  const STORAGE_KEY = "kanban-board-web:state";
+  const { normalizeHexColor } = Kanban.utils;
 
   function isNonEmptyString(value) {
     return typeof value === "string" && value.trim().length > 0;
@@ -33,8 +33,6 @@
     return Boolean(
       value &&
         typeof value === "object" &&
-        isNonEmptyString(value.id) &&
-        isNonEmptyString(value.title) &&
         Array.isArray(value.columns) &&
         value.columns.every(isValidColumn)
     );

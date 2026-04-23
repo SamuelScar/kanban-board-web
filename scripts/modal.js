@@ -141,7 +141,6 @@
   }
 
   Kanban.modal = {
-    openTextDialog,
     editCardDescription,
   };
 })(window);

@@ -20,6 +20,11 @@
     cardSortables = [];
   }
 
+  function destroySortables() {
+    destroyCardSortables();
+    destroyBoardSortable();
+  }
+
   function createMovePayload(event) {
     if (
       !(event.from instanceof HTMLElement) ||
@@ -188,9 +193,6 @@
   Kanban.dragDrop = {
     bindBoardSortable,
     bindCardSortables,
-    destroyCardSortables: function destroySortables() {
-      destroyCardSortables();
-      destroyBoardSortable();
-    },
+    destroySortables,
   };
 })(window);
