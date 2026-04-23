@@ -16,8 +16,8 @@
   const {
     confirmCardRemoval,
     confirmColumnRemoval,
-    editCardDescription,
   } = Kanban.alerts;
+  const { editCardDescription } = Kanban.modal;
   const { bindBoardSortable, bindCardSortables, destroyCardSortables } =
     Kanban.dragDrop;
   const { loadBoardState, saveBoardState } = Kanban.storage;
@@ -221,7 +221,8 @@
 
       const nextDescription = await editCardDescription(
         card.title,
-        card.description || ""
+        card.description || "",
+        cardElement
       );
 
       if (nextDescription === null) {

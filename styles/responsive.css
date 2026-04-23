@@ -1,0 +1,31 @@
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 104px 20px 36px;
+  }
+
+  .app-header {
+    padding: 20px 20px 16px;
+  }
+
+  .board {
+    grid-auto-columns: minmax(260px, 88vw);
+    gap: 16px;
+  }
+
+  .text-dialog {
+    width: min(100vw - 20px, 560px);
+    border-radius: 24px;
+  }
+
+  .text-dialog__form {
+    padding: 20px;
+  }
+
+  .text-dialog__actions {
+    flex-direction: column-reverse;
+  }
+
+  .text-dialog__button {
+    width: 100%;
+  }
+}

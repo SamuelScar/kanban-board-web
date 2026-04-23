@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Aplicacao web de quadro Kanban inspirada em ferramentas como Trello, desenvolvida apenas com tecnologias nativas da web.",
   "private": true,
-  "scripts": {
-    "start": "python3 -m http.server 8000"
-  },
   "license": "MIT",
   "dependencies": {
     "sortablejs": "^1.15.7",

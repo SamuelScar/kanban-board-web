@@ -32,13 +32,7 @@ Primeiro, instale a dependencia local do projeto:
 npm install
 ```
 
-Depois, rode o servidor local:
-
-```bash
-npm start
-```
-
-Depois, abra `http://localhost:8000` no navegador.
+Depois, abra o arquivo `index.html` diretamente no navegador.
 
 ## Documento de referencia
 
