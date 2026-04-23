@@ -1,3 +1,4 @@
+/* Grade horizontal do board. Cada coluna ocupa uma "faixa" independente. */
 .board {
   display: grid;
   grid-auto-flow: column;
@@ -8,6 +9,7 @@
   padding: 6px 0 16px;
 }
 
+/* Bloco visual de cada coluna do Kanban. */
 .column {
   display: flex;
   flex-direction: column;
@@ -19,6 +21,7 @@
   backdrop-filter: blur(8px);
 }
 
+/* Cabecalho arrastavel da coluna. */
 .column__header {
   display: flex;
   justify-content: space-between;
@@ -28,6 +31,7 @@
   cursor: grab;
 }
 
+/* Titulos editaveis de colunas e cards compartilham a mesma base visual. */
 .column__title-input,
 .card__title-input {
   width: 100%;
@@ -37,27 +41,32 @@
   padding: 0;
 }
 
+/* O titulo da coluna recebe mais destaque por ser o agrupador principal. */
 .column__title-input {
   font-size: 1.05rem;
   font-weight: 700;
 }
 
+/* Remove o outline nativo porque o componente usa estilo proprio. */
 .column__title-input:focus,
 .card__title-input:focus {
   outline: none;
 }
 
+/* Mantem a selecao textual alinhada com a paleta visual do projeto. */
 .column__title-input::selection,
 .card__title-input::selection {
   background: rgba(185, 111, 59, 0.2);
 }
 
+/* Metadado que informa a quantidade atual de cards na coluna. */
 .column__meta {
   margin: 6px 0 0;
   color: var(--text-muted);
   font-size: 0.9rem;
 }
 
+/* Botoes de remocao usam aparencia discreta para nao competir com o conteudo. */
 .column__remove-button,
 .card__remove-button {
   border: 0;
@@ -66,16 +75,19 @@
   cursor: pointer;
 }
 
+/* Ajuste fino do botao de exclusao da coluna. */
 .column__remove-button {
   padding: 2px 4px;
   font-size: 1rem;
   line-height: 1;
 }
 
+/* Durante o arraste, o cursor sinaliza que a coluna esta "presa" ao mouse. */
 .board--column-dragging .column__header {
   cursor: grabbing;
 }
 
+/* Lista interna que acomoda cards e recebe drops do SortableJS. */
 .column__cards {
   display: grid;
   flex: 1;
@@ -86,6 +98,7 @@
   transition: background-color 160ms ease, box-shadow 160ms ease;
 }
 
+/* Acao primaria de adicionar um novo card dentro da coluna. */
 .column__add-card-button {
   align-self: flex-start;
   margin: 0 18px 18px;
@@ -100,11 +113,13 @@
   cursor: pointer;
 }
 
+/* Hover compartilhado entre os botoes de criacao. */
 .column__add-card-button:hover,
 .board__add-column-button:hover {
   filter: brightness(1.03);
 }
 
+/* Cartao individual de tarefa. */
 .card {
   position: relative;
   padding: 14px 14px 14px 24px;
@@ -119,6 +134,7 @@
     opacity 160ms ease;
 }
 
+/* Area das acoes secundarias do card, alinhadas no topo. */
 .card__actions {
   display: flex;
   align-items: center;
@@ -127,10 +143,12 @@
   margin-bottom: 2px;
 }
 
+/* Componente de cores do card. */
 .card__color-picker {
   position: relative;
 }
 
+/* Botao circular que abre a paleta de cores. */
 .card__color-toggle {
   position: relative;
   display: block;
@@ -144,10 +162,12 @@
   list-style: none;
 }
 
+/* Remove o marcador padrao do `<summary>` para usar apenas o ponto de cor. */
 .card__color-toggle::-webkit-details-marker {
   display: none;
 }
 
+/* Disco interno que mostra a cor atualmente aplicada ao card. */
 .card__color-toggle::before {
   content: "";
   position: absolute;
@@ -156,10 +176,12 @@
   background: var(--card-color-button-fill, #efe5d8);
 }
 
+/* Destaque sutil para indicar que a paleta esta aberta. */
 .card__color-picker[open] .card__color-toggle {
   border-color: rgba(185, 111, 59, 0.34);
 }
 
+/* Painel flutuante com todas as cores disponiveis. */
 .card__color-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -177,6 +199,7 @@
   backdrop-filter: blur(8px);
 }
 
+/* Botao de escolha de cada cor da paleta. */
 .card__color-option {
   width: 18px;
   height: 18px;
@@ -187,10 +210,12 @@
   cursor: pointer;
 }
 
+/* Marca visual da cor atualmente selecionada. */
 .card__color-option[aria-pressed="true"] {
   box-shadow: 0 0 0 2px rgba(185, 111, 59, 0.18);
 }
 
+/* Opcao "sem cor": usa uma faixa diagonal para indicar limpeza. */
 .card__color-option--clear {
   background:
     linear-gradient(
@@ -202,12 +227,14 @@
     #fff8ee;
 }
 
+/* Ajuste fino do botao de remocao do card. */
 .card__remove-button {
   padding: 0;
   font-size: 0.95rem;
   line-height: 1;
 }
 
+/* Titulo do card editavel em linha. */
 .card__title-input {
   display: block;
   margin: 0 0 8px;
@@ -217,6 +244,7 @@
   cursor: text;
 }
 
+/* Texto complementar do card. */
 .card__description {
   margin: 0;
   color: var(--text-muted);
@@ -225,6 +253,7 @@
   white-space: pre-line;
 }
 
+/* Barra lateral que herda a cor ativa do card. */
 .card::before {
   content: "";
   position: absolute;
@@ -237,11 +266,13 @@
   opacity: 0.45;
 }
 
+/* Indicios visuais de que o board esta pronto para receber um card arrastado. */
 .board--dragging .column__cards {
   background: rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 0 0 1px rgba(185, 111, 59, 0.14);
 }
 
+/* Mensagem exibida quando uma coluna vazia vira alvo de drop. */
 .board--dragging .column__cards:empty::before {
   content: "Solte aqui";
   display: block;
@@ -253,6 +284,7 @@
   text-align: center;
 }
 
+/* Estados temporarios aplicados pelo SortableJS durante o arraste. */
 .card--chosen {
   box-shadow: 0 16px 26px rgba(53, 42, 29, 0.14);
 }
@@ -269,6 +301,7 @@
   box-shadow: none;
 }
 
+/* Estados temporarios das colunas enquanto estao sendo arrastadas. */
 .column--chosen {
   box-shadow: 0 20px 32px rgba(60, 46, 30, 0.16);
 }
@@ -284,6 +317,7 @@
   box-shadow: none;
 }
 
+/* Botao exibido ao final do board para criar novas colunas. */
 .board__add-column-button {
   min-height: 96px;
   border: 1px dashed rgba(80, 63, 46, 0.2);

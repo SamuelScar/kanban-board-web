@@ -1,7 +1,20 @@
+/**
+ * Concentra todas as operacoes puras sobre o estado do board.
+ * As funcoes deste modulo sempre retornam novas estruturas quando algo muda,
+ * o que facilita a renderizacao e o estudo do fluxo de dados.
+ *
+ * @param {Window} global Objeto global do navegador.
+ */
 (function attachState(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
   const { createId, normalizeHexColor, normalizeText } = Kanban.utils;
 
+  /**
+   * Cria uma nova coluna com titulo saneado e lista de cards vazia.
+   *
+   * @param {string} title Titulo informado pela interface.
+   * @returns {{ id: string, title: string, cards: Array<object> }} Nova coluna.
+   */
   function createColumn(title) {
     const normalizedTitle = normalizeText(title) || "Nova coluna";
 
@@ -12,6 +25,13 @@
     };
   }
 
+  /**
+   * Adiciona uma coluna ao fim do quadro.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} [title] Titulo opcional da nova coluna.
+   * @returns {{ columns: Array<object> }} Novo estado com a coluna criada.
+   */
   function addColumn(boardState, title) {
     const newColumn = createColumn(title);
 
@@ -21,6 +41,12 @@
     };
   }
 
+  /**
+   * Cria um card com titulo saneado e descricao vazia por padrao.
+   *
+   * @param {string} title Titulo informado pela interface.
+   * @returns {{ id: string, title: string, description: string }} Novo card.
+   */
   function createCard(title) {
     const normalizedTitle = normalizeText(title) || "Novo card";
 
@@ -31,6 +57,15 @@
     };
   }
 
+  /**
+   * Atualiza uma unica coluna sem mutar o restante da estrutura.
+   * Se o `updater` nao alterar nada, o estado original e reaproveitado.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Identificador da coluna a ser atualizada.
+   * @param {(column: object) => object} updater Funcao que produz a proxima coluna.
+   * @returns {{ columns: Array<object> }} Estado atualizado ou o original.
+   */
   function withUpdatedColumn(boardState, columnId, updater) {
     let didUpdate = false;
 
@@ -57,6 +92,15 @@
       : boardState;
   }
 
+  /**
+   * Atualiza um card localizado dentro de uma coluna especifica.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna que contem o card.
+   * @param {string} cardId Card a ser transformado.
+   * @param {(card: object) => object} updater Funcao que produz o proximo card.
+   * @returns {{ columns: Array<object> }} Estado atualizado ou o original.
+   */
   function withUpdatedCard(boardState, columnId, cardId, updater) {
     return withUpdatedColumn(boardState, columnId, function updateColumnCards(column) {
       let didUpdate = false;
@@ -85,6 +129,14 @@
     });
   }
 
+  /**
+   * Cria um card e o adiciona ao final da coluna informada.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna que recebera o novo card.
+   * @param {string} [title] Titulo opcional do novo card.
+   * @returns {{ columns: Array<object> }} Novo estado com o card inserido.
+   */
   function addCard(boardState, columnId, title) {
     return withUpdatedColumn(boardState, columnId, function appendCard(column) {
       return {
@@ -94,6 +146,13 @@
     });
   }
 
+  /**
+   * Remove uma coluna inteira do quadro.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna a remover.
+   * @returns {{ columns: Array<object> }} Estado sem a coluna, se ela existir.
+   */
   function removeColumn(boardState, columnId) {
     const nextColumns = boardState.columns.filter(function filterColumn(column) {
       return column.id !== columnId;
@@ -107,6 +166,14 @@
         };
   }
 
+  /**
+   * Remove um card de dentro de uma coluna especifica.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna que contem o card.
+   * @param {string} cardId Card a remover.
+   * @returns {{ columns: Array<object> }} Estado atualizado sem o card.
+   */
   function removeCard(boardState, columnId, cardId) {
     return withUpdatedColumn(boardState, columnId, function removeColumnCard(column) {
       const nextCards = column.cards.filter(function filterCard(card) {
@@ -122,6 +189,14 @@
     });
   }
 
+  /**
+   * Reordena colunas no eixo horizontal do board.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna arrastada.
+   * @param {number} targetIndex Nova posicao desejada.
+   * @returns {{ columns: Array<object> }} Estado com a nova ordem.
+   */
   function moveColumn(boardState, columnId, targetIndex) {
     const sourceIndex = boardState.columns.findIndex(function matchColumn(column) {
       return column.id === columnId;
@@ -151,6 +226,16 @@
     };
   }
 
+  /**
+   * Move um card dentro da mesma coluna ou entre colunas diferentes.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} sourceColumnId Coluna de origem.
+   * @param {string} cardId Card que esta sendo movido.
+   * @param {string} targetColumnId Coluna de destino.
+   * @param {number} targetIndex Posicao final dentro da coluna de destino.
+   * @returns {{ columns: Array<object> }} Estado com os cards reordenados.
+   */
   function moveCard(
     boardState,
     sourceColumnId,
@@ -212,6 +297,14 @@
     };
   }
 
+  /**
+   * Atualiza o titulo de uma coluna quando o texto informado e valido.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna a renomear.
+   * @param {string} title Novo titulo digitado pelo usuario.
+   * @returns {{ columns: Array<object> }} Estado com o titulo atualizado.
+   */
   function updateColumnTitle(boardState, columnId, title) {
     const normalizedTitle = normalizeText(title);
 
@@ -229,6 +322,15 @@
     });
   }
 
+  /**
+   * Atualiza o titulo de um card especifico.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna que contem o card.
+   * @param {string} cardId Card a renomear.
+   * @param {string} title Novo titulo digitado pelo usuario.
+   * @returns {{ columns: Array<object> }} Estado com o titulo do card atualizado.
+   */
   function updateCardTitle(boardState, columnId, cardId, title) {
     const normalizedTitle = normalizeText(title);
 
@@ -246,6 +348,15 @@
     });
   }
 
+  /**
+   * Atualiza a descricao textual de um card.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna que contem o card.
+   * @param {string} cardId Card cuja descricao sera alterada.
+   * @param {string} description Novo texto descritivo.
+   * @returns {{ columns: Array<object> }} Estado com a descricao atualizada.
+   */
   function updateCardDescription(boardState, columnId, cardId, description) {
     const normalizedDescription = normalizeText(description);
 
@@ -264,6 +375,16 @@
     );
   }
 
+  /**
+   * Atualiza a cor de destaque do card.
+   * Quando a cor informada e invalida ou vazia, o atributo e removido.
+   *
+   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {string} columnId Coluna que contem o card.
+   * @param {string} cardId Card cuja cor sera alterada.
+   * @param {string} color Nova cor em hexadecimal.
+   * @returns {{ columns: Array<object> }} Estado com a cor normalizada.
+   */
   function updateCardColor(boardState, columnId, cardId, color) {
     const normalizedColor = normalizeHexColor(color);
 
@@ -287,6 +408,12 @@
     });
   }
 
+  /**
+   * Gera o estado inicial usado na primeira carga da aplicacao.
+   * O conteudo exemplo ajuda a demonstrar a estrutura do board logo no inicio.
+   *
+   * @returns {{ columns: Array<object> }} Estrutura inicial do quadro.
+   */
   function createInitialBoardState() {
     return {
       columns: [

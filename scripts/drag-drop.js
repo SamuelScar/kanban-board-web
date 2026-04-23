@@ -1,9 +1,21 @@
+/**
+ * Encapsula a integracao com o SortableJS.
+ * Este modulo cuida da criacao, destruicao e traducao dos eventos de arraste
+ * para payloads simples consumidos pela aplicacao.
+ *
+ * @param {Window} global Objeto global do navegador.
+ */
 (function attachDragAndDrop(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
   const Sortable = global.Sortable;
   let cardSortables = [];
   let boardSortable = null;
 
+  /**
+   * Remove a instancia responsavel por ordenar colunas.
+   *
+   * @returns {void}
+   */
   function destroyBoardSortable() {
     if (!boardSortable) {
       return;
@@ -13,6 +25,11 @@
     boardSortable = null;
   }
 
+  /**
+   * Remove todas as instancias responsaveis pelo arraste dos cards.
+   *
+   * @returns {void}
+   */
   function destroyCardSortables() {
     cardSortables.forEach(function destroySortable(sortableInstance) {
       sortableInstance.destroy();
@@ -20,11 +37,29 @@
     cardSortables = [];
   }
 
+  /**
+   * Limpa todas as instancias do Sortable antes de uma nova vinculacao
+   * ou antes de sair da pagina.
+   *
+   * @returns {void}
+   */
   function destroySortables() {
     destroyCardSortables();
     destroyBoardSortable();
   }
 
+  /**
+   * Traduz o evento do SortableJS para um payload independente da biblioteca.
+   *
+   * @param {Sortable.SortableEvent} event Evento bruto do SortableJS.
+   * @returns {{
+   *   sourceColumnId: string,
+   *   targetColumnId: string,
+   *   cardId: string,
+   *   sourceIndex: number,
+   *   targetIndex: number
+   * } | null} Dados necessarios para mover um card no estado.
+   */
   function createMovePayload(event) {
     if (
       !(event.from instanceof HTMLElement) ||
@@ -57,6 +92,14 @@
     };
   }
 
+  /**
+   * Traduz o evento de arraste de colunas para um payload simples.
+   * O codigo considera tanto os indices padrao quanto os `draggableIndex`
+   * usados pela biblioteca em alguns cenarios.
+   *
+   * @param {Sortable.SortableEvent} event Evento bruto do SortableJS.
+   * @returns {{ columnId: string, sourceIndex: number, targetIndex: number } | null} Dados da movimentacao.
+   */
   function createColumnMovePayload(event) {
     if (!(event.item instanceof HTMLElement)) {
       return null;
@@ -87,6 +130,13 @@
     };
   }
 
+  /**
+   * Ativa o arraste horizontal das colunas do quadro.
+   *
+   * @param {HTMLElement} rootElement Elemento raiz que contem as colunas.
+   * @param {object} handlers Callbacks opcionais para o ciclo de arraste.
+   * @returns {void}
+   */
   function bindBoardSortable(rootElement, handlers) {
     destroyBoardSortable();
 
@@ -132,6 +182,13 @@
     });
   }
 
+  /**
+   * Ativa o arraste de cards em todas as colunas visiveis no momento.
+   *
+   * @param {HTMLElement} rootElement Elemento raiz que contem as listas de cards.
+   * @param {object} handlers Callbacks opcionais para o ciclo de arraste.
+   * @returns {void}
+   */
   function bindCardSortables(rootElement, handlers) {
     destroyCardSortables();
 

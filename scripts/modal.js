@@ -1,8 +1,30 @@
+/**
+ * Controla a criacao e a reutilizacao do dialogo modal usado pela aplicacao.
+ * O mesmo componente atende cenarios de confirmacao e edicao textual.
+ *
+ * @param {Window} global Objeto global do navegador.
+ */
 (function attachModal(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
   const DIALOG_ID = "kanban-dialog";
   let dialogRefs = null;
 
+  /**
+   * Cria o elemento `<dialog>` e guarda referencias para os controles internos.
+   * Isso evita buscar os mesmos elementos repetidamente a cada abertura.
+   *
+   * @returns {{
+   *   dialogElement: HTMLDialogElement,
+   *   eyebrowElement: HTMLElement | null,
+   *   titleElement: HTMLElement | null,
+   *   descriptionElement: HTMLElement | null,
+   *   fieldElement: HTMLElement | null,
+   *   labelElement: HTMLElement | null,
+   *   textareaElement: HTMLTextAreaElement | null,
+   *   cancelButton: HTMLButtonElement | null,
+   *   confirmButton: HTMLButtonElement | null
+   * }} Referencias reutilizadas pelo modulo.
+   */
   function createDialogElement() {
     const dialogElement = document.createElement("dialog");
     dialogElement.className = "text-dialog";
@@ -45,6 +67,11 @@
     };
   }
 
+  /**
+   * Garante que exista apenas uma instancia do dialogo no DOM.
+   *
+   * @returns {ReturnType<typeof createDialogElement>} Referencias do dialogo.
+   */
   function ensureDialog() {
     if (dialogRefs) {
       return dialogRefs;
@@ -54,6 +81,12 @@
     return dialogRefs;
   }
 
+  /**
+   * Posiciona o cursor ao final do texto para facilitar a edicao.
+   *
+   * @param {HTMLTextAreaElement} textareaElement Campo de edicao do dialogo.
+   * @returns {void}
+   */
   function focusTextarea(textareaElement) {
     textareaElement.focus();
 
@@ -61,12 +94,26 @@
     textareaElement.setSelectionRange(textLength, textLength);
   }
 
+  /**
+   * Devolve o foco ao controle que abriu o modal, quando ele ainda existe no DOM.
+   *
+   * @param {Element | null | undefined} element Elemento que deve recuperar o foco.
+   * @returns {void}
+   */
   function restoreFocus(element) {
     if (element instanceof HTMLElement && element.isConnected) {
       element.focus();
     }
   }
 
+  /**
+   * Define qual controle recebe foco ao abrir o dialogo.
+   * Em confirmacoes, prioriza o botao de cancelar para evitar exclusoes acidentais.
+   *
+   * @param {"confirm" | "text"} mode Modo atual do dialogo.
+   * @param {{ cancelButton: HTMLButtonElement | null, textareaElement: HTMLTextAreaElement | null }} refs Referencias necessarias para o foco inicial.
+   * @returns {void}
+   */
   function focusInitialControl(mode, refs) {
     if (mode === "confirm") {
       refs.cancelButton.focus();
@@ -76,6 +123,26 @@
     focusTextarea(refs.textareaElement);
   }
 
+  /**
+   * Abre o dialogo configurando titulo, descricao, campos e textos dos botoes.
+   * O retorno e sempre uma `Promise`, permitindo tratar confirmacoes e edicoes
+   * com o mesmo fluxo assicrono.
+   *
+   * @param {{
+   *   title: string,
+   *   mode?: "confirm" | "text",
+   *   eyebrow?: string,
+   *   description?: string,
+   *   label?: string,
+   *   placeholder?: string,
+   *   confirmText?: string,
+   *   cancelText?: string,
+   *   initialValue?: string,
+   *   variant?: string,
+   *   restoreFocusElement?: Element | null
+   * }} options Configuracao visual e comportamental do dialogo.
+   * @returns {Promise<boolean | string | null>} Resultado da interacao.
+   */
   function openDialog(options) {
     const {
       dialogElement,
@@ -151,6 +218,12 @@
     });
   }
 
+  /**
+   * Atalho para abrir o dialogo no modo de confirmacao simples.
+   *
+   * @param {object} options Configuracoes complementares do modal.
+   * @returns {Promise<boolean>} `true` quando a acao foi confirmada.
+   */
   function confirmDialog(options) {
     return openDialog({
       mode: "confirm",
@@ -161,6 +234,14 @@
     });
   }
 
+  /**
+   * Abre o editor de descricao de um card.
+   *
+   * @param {string} cardTitle Titulo do card sendo editado.
+   * @param {string} currentDescription Descricao atual do card.
+   * @param {Element | null | undefined} restoreFocusElement Elemento que deve recuperar foco.
+   * @returns {Promise<string | null>} Novo texto ou `null` quando cancelado.
+   */
   function editCardDescription(cardTitle, currentDescription, restoreFocusElement) {
     return openDialog({
       mode: "text",
@@ -176,6 +257,12 @@
     });
   }
 
+  /**
+   * Solicita confirmacao antes de remover um card.
+   *
+   * @param {Element | null | undefined} restoreFocusElement Elemento que abre o modal.
+   * @returns {Promise<boolean>} `true` quando o card deve ser removido.
+   */
   function confirmCardRemoval(restoreFocusElement) {
     return confirmDialog({
       variant: "destructive",
@@ -186,6 +273,15 @@
     });
   }
 
+  /**
+   * Solicita confirmacao antes de remover uma coluna, incluindo o impacto
+   * sobre a quantidade de cards contidos nela.
+   *
+   * @param {string} columnTitle Titulo da coluna.
+   * @param {number} cardCount Quantidade de cards dentro da coluna.
+   * @param {Element | null | undefined} restoreFocusElement Elemento que abre o modal.
+   * @returns {Promise<boolean>} `true` quando a coluna deve ser removida.
+   */
   function confirmColumnRemoval(columnTitle, cardCount, restoreFocusElement) {
     return confirmDialog({
       variant: "destructive",

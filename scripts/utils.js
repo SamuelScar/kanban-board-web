@@ -1,6 +1,21 @@
+/**
+ * Reune funcoes utilitarias compartilhadas por todos os modulos da aplicacao.
+ * Este arquivo concentra normalizacao de dados, formatacao de texto e apoio
+ * visual para cores dos cards.
+ *
+ * @param {Window} global Objeto global do navegador.
+ */
 (function attachUtils(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
 
+  /**
+   * Gera um identificador unico com um prefixo sem depender de estado externo.
+   * Prioriza `crypto.randomUUID` quando disponivel e usa um fallback simples
+   * baseado em tempo e aleatoriedade quando necessario.
+   *
+   * @param {string} prefix Prefixo que identifica o tipo do item.
+   * @returns {string} Identificador pronto para uso em colunas e cards.
+   */
   function createId(prefix) {
     if (global.crypto && typeof global.crypto.randomUUID === "function") {
       return prefix + "-" + global.crypto.randomUUID();
@@ -15,14 +30,30 @@
     );
   }
 
+  /**
+   * Remove espacos excedentes e garante que o retorno sempre seja texto.
+   *
+   * @param {unknown} value Valor recebido da interface ou do estado.
+   * @returns {string} Texto normalizado ou string vazia para entradas invalidas.
+   */
   function normalizeText(value) {
     return typeof value === "string" ? value.trim() : "";
   }
 
+  /**
+   * Exibe a quantidade de cards usando singular ou plural de forma consistente.
+   *
+   * @param {number} count Quantidade de cards em uma coluna.
+   * @returns {string} Texto pronto para aparecer na interface.
+   */
   function formatCardCount(count) {
     return count === 1 ? "1 card" : count + " cards";
   }
 
+  /**
+   * Paleta fixa exibida no seletor de cores dos cards.
+   * `Object.freeze` evita alteracoes acidentais em tempo de execucao.
+   */
   const CARD_COLOR_OPTIONS = Object.freeze([
     Object.freeze({ label: "Padrao", value: "" }),
     Object.freeze({ label: "Areia", value: "#d9c6ae" }),
@@ -34,6 +65,13 @@
     Object.freeze({ label: "Rosa", value: "#d7a0b5" }),
   ]);
 
+  /**
+   * Valida uma cor hexadecimal e a normaliza para o formato `#rrggbb`.
+   * Tambem converte versoes curtas, como `#abc`, para a forma expandida.
+   *
+   * @param {unknown} value Cor recebida pelo estado ou pela interface.
+   * @returns {string} Cor normalizada ou string vazia quando invalida.
+   */
   function normalizeHexColor(value) {
     if (typeof value !== "string") {
       return "";
@@ -62,6 +100,13 @@
     return "";
   }
 
+  /**
+   * Mistura uma cor com branco para gerar superficies mais suaves na interface.
+   *
+   * @param {string} hexColor Cor base em hexadecimal.
+   * @param {number} whiteRatio Intensidade da mistura com branco entre 0 e 1.
+   * @returns {string} Nova cor clareada ou string vazia quando a entrada e invalida.
+   */
   function tintHexColor(hexColor, whiteRatio) {
     const normalizedColor = normalizeHexColor(hexColor);
 

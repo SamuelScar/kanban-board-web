@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KBW</title>
+    <!-- Camada base de tokens, layout geral, board, modal e ajustes responsivos. -->
     <link rel="stylesheet" href="./styles/base.css" />
     <link rel="stylesheet" href="./styles/layout.css" />
     <link rel="stylesheet" href="./styles/board.css" />
@@ -11,12 +12,14 @@
     <link rel="stylesheet" href="./styles/responsive.css" />
   </head>
   <body>
+    <!-- Casca principal da aplicacao: cabecalho fixo e area do quadro. -->
     <div class="app-shell">
       <header class="app-header">
         <h1>KBW</h1>
       </header>
 
       <main class="app-main">
+        <!-- O board e renderizado inteiramente via JavaScript a partir do estado. -->
         <section
           class="board"
           data-board-root
@@ -25,6 +28,7 @@
       </main>
     </div>
 
+    <!-- A ordem dos scripts respeita as dependencias entre os modulos. -->
     <script src="./node_modules/sortablejs/Sortable.min.js" defer></script>
     <script src="./scripts/utils.js" defer></script>
     <script src="./scripts/state.js" defer></script>

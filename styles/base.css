@@ -1,3 +1,4 @@
+/* Tokens globais de cor, superficie e sombra compartilhados no projeto. */
 :root {
   --bg-start: #f1ede1;
   --bg-end: #d7e5ec;
@@ -11,12 +12,14 @@
   --shadow-card: 0 10px 18px rgba(53, 42, 29, 0.08);
 }
 
+/* Reset estrutural para facilitar o controle de espacamento e medidas. */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+/* Configuracao base do documento e do fundo atmosferico da aplicacao. */
 body {
   position: relative;
   isolation: isolate;
@@ -28,6 +31,7 @@ body {
   background: transparent;
 }
 
+/* Camada fixa atras de todo o conteudo para criar profundidade visual. */
 body::before {
   content: "";
   position: fixed;
@@ -38,12 +42,14 @@ body::before {
     linear-gradient(135deg, var(--bg-start), var(--bg-end));
 }
 
+/* Faz controles nativos herdarem a tipografia principal do projeto. */
 button,
 input,
 textarea {
   font: inherit;
 }
 
+/* Classe utilitaria para texto acessivel somente a leitores de tela. */
 .sr-only {
   position: absolute;
   width: 1px;
