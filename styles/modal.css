@@ -11,6 +11,10 @@
   color: var(--text-main);
 }
 
+.text-dialog--confirm {
+  width: min(480px, calc(100vw - 32px));
+}
+
 .text-dialog::backdrop {
   background: rgba(47, 42, 37, 0.34);
   backdrop-filter: blur(8px);
@@ -40,6 +44,10 @@
   color: var(--accent);
 }
 
+.text-dialog--destructive .text-dialog__eyebrow {
+  color: #a6592b;
+}
+
 .text-dialog__title {
   margin: 0;
   font-size: clamp(1.35rem, 2.2vw, 1.7rem);
@@ -55,6 +63,10 @@
 .text-dialog__field {
   display: grid;
   gap: 10px;
+}
+
+.text-dialog__field[hidden] {
+  display: none;
 }
 
 .text-dialog__label {
@@ -130,6 +142,11 @@
   background: linear-gradient(180deg, #c57b44, #a6592b);
   color: #fff9f2;
   box-shadow: 0 12px 24px rgba(166, 89, 43, 0.18);
+}
+
+.text-dialog--destructive .text-dialog__button--primary {
+  background: linear-gradient(180deg, #ba5d3a, #944127);
+  box-shadow: 0 12px 24px rgba(148, 65, 39, 0.2);
 }
 
 @keyframes dialog-enter {

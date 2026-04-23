@@ -16,8 +16,8 @@
   const {
     confirmCardRemoval,
     confirmColumnRemoval,
-  } = Kanban.alerts;
-  const { editCardDescription } = Kanban.modal;
+    editCardDescription,
+  } = Kanban.modal;
   const { bindBoardSortable, bindCardSortables, destroySortables } = Kanban.dragDrop;
   const { loadBoardState, saveBoardState } = Kanban.storage;
   const { renderBoard } = Kanban.ui;
@@ -130,7 +130,7 @@
           return;
         }
 
-        const shouldRemoveCard = await confirmCardRemoval();
+        const shouldRemoveCard = await confirmCardRemoval(removeCardButton);
 
         if (!shouldRemoveCard) {
           return;
@@ -158,7 +158,8 @@
 
         const shouldRemoveColumn = await confirmColumnRemoval(
           column.title,
-          column.cards.length
+          column.cards.length,
+          removeColumnButton
         );
 
         if (!shouldRemoveColumn) {

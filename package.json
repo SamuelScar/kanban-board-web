@@ -5,7 +5,6 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-    "sortablejs": "^1.15.7",
-    "sweetalert2": "^11.26.24"
+    "sortablejs": "^1.15.7"
   }
 }
