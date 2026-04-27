@@ -146,25 +146,13 @@
     const acoes = callbacks || {};
 
     arrasteColunas = Ordenavel.create(elementoQuadro, {
-      animation: 180,
+      animation: 150,
       direction: "horizontal",
       draggable: ".coluna",
       handle: ".coluna__cabecalho",
-      filter: "input, button, select, summary",
+      filter: "input, button",
       preventOnFilter: false,
-      ghostClass: "coluna--fantasma",
-      chosenClass: "coluna--selecionada",
-      dragClass: "coluna--arrastando",
-      onStart: function aoIniciar() {
-        if (typeof acoes.aoIniciarArrasteColuna === "function") {
-          acoes.aoIniciarArrasteColuna();
-        }
-      },
       onEnd: function aoEncerrar(evento) {
-        if (typeof acoes.aoEncerrarArrasteColuna === "function") {
-          acoes.aoEncerrarArrasteColuna();
-        }
-
         const dadosMovimentacao = criarDadosMovimentacaoColuna(evento);
 
         if (!dadosMovimentacao) {
@@ -204,22 +192,10 @@
     arrastesCartoes = Array.from(listasCartoes).map(function criarArraste(listaCartoes) {
       return Ordenavel.create(listaCartoes, {
         group: "kanban-cartoes",
-        animation: 180,
-        delay: 180,
-        delayOnTouchOnly: false,
-        touchStartThreshold: 4,
+        animation: 150,
         draggable: ".cartao",
-        filter: "input, button, select, summary",
+        filter: "input, button",
         preventOnFilter: false,
-        ghostClass: "cartao--fantasma",
-        chosenClass: "cartao--selecionado",
-        dragClass: "cartao--arrastando",
-        emptyInsertThreshold: 48,
-        onStart: function aoIniciar() {
-          if (typeof acoes.aoIniciarArraste === "function") {
-            acoes.aoIniciarArraste();
-          }
-        },
         onEnd: function aoEncerrar(evento) {
           if (typeof acoes.aoEncerrarArraste === "function") {
             acoes.aoEncerrarArraste();

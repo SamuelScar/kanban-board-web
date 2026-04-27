@@ -10,7 +10,6 @@
   const {
     adicionarCartao,
     adicionarColuna,
-    atualizarCorCartao,
     atualizarDescricaoCartao,
     atualizarTituloCartao,
     atualizarTituloColuna,
@@ -71,24 +70,6 @@
     }
 
     /**
-     * Marca visualmente que o usuario iniciou o arraste de uma coluna.
-     *
-     * @returns {void}
-     */
-    function aoIniciarArrasteColuna() {
-      elementoQuadro.classList.add("quadro--arrastando-coluna");
-    }
-
-    /**
-     * Remove o estado visual de arraste de coluna.
-     *
-     * @returns {void}
-     */
-    function aoEncerrarArrasteColuna() {
-      elementoQuadro.classList.remove("quadro--arrastando-coluna");
-    }
-
-    /**
      * Atualiza o estado apos a soltura de uma coluna em nova posicao.
      *
      * @param {{ idColuna: string, indiceDestino: number }} dadosMovimentacao Dados da movimentacao.
@@ -104,22 +85,12 @@
     }
 
     /**
-     * Marca visualmente o arraste de cartoes para destacar os alvos de drop.
-     *
-     * @returns {void}
-     */
-    function aoIniciarArrasteCartao() {
-      elementoQuadro.classList.add("quadro--arrastando");
-    }
-
-    /**
-     * Finaliza o estado visual de arraste e bloqueia por alguns milissegundos
-     * a abertura do modal do cartao, evitando cliques acidentais apos o drop.
+     * Bloqueia por alguns milissegundos a abertura do editor do cartao,
+     * evitando cliques acidentais logo apos o drop.
      *
      * @returns {void}
      */
     function aoEncerrarArrasteCartao() {
-      elementoQuadro.classList.remove("quadro--arrastando");
       liberarAberturaCartaoEm = Date.now() + 250;
     }
 
@@ -152,14 +123,11 @@
      */
     function ativarInteracoesQuadro() {
       ativarArrasteColunas(elementoQuadro, {
-        aoEncerrarArrasteColuna,
-        aoIniciarArrasteColuna,
         aoSoltarColuna,
       });
 
       ativarArrasteCartoes(elementoQuadro, {
         aoEncerrarArraste: aoEncerrarArrasteCartao,
-        aoIniciarArraste: aoIniciarArrasteCartao,
         aoSoltarCartao,
       });
     }
@@ -280,38 +248,6 @@
     }
 
     /**
-     * Atualiza a cor de um cartao e fecha o seletor de cores em seguida.
-     *
-     * @param {HTMLButtonElement} elementoBotao Botao clicado na paleta.
-     * @returns {void}
-     */
-    function aoClicarAlterarCorCartao(elementoBotao) {
-      const elementoColuna = obterElementoColuna(elementoBotao);
-
-      if (!elementoColuna) {
-        return;
-      }
-
-      estadoQuadro = atualizarCorCartao(
-        estadoQuadro,
-        elementoColuna.dataset.colunaId,
-        elementoBotao.dataset.cartaoId,
-        elementoBotao.dataset.valorCor || ""
-      );
-
-      const elementoSeletorCor = obterElementoMaisProximo(
-        elementoBotao,
-        ".cartao__seletor-cor"
-      );
-
-      if (elementoSeletorCor instanceof HTMLDetailsElement) {
-        elementoSeletorCor.removeAttribute("open");
-      }
-
-      sincronizarQuadro();
-    }
-
-    /**
      * Pede confirmacao e remove um cartao quando a resposta e positiva.
      *
      * @param {HTMLButtonElement} elementoBotao Botao que disparou a exclusao.
@@ -324,7 +260,7 @@
         return;
       }
 
-      const deveRemoverCartao = await confirmarRemocaoCartao(elementoBotao);
+      const deveRemoverCartao = await confirmarRemocaoCartao();
 
       if (!deveRemoverCartao) {
         return;
@@ -353,8 +289,7 @@
 
       const deveRemoverColuna = await confirmarRemocaoColuna(
         coluna.titulo,
-        coluna.cartoes.length,
-        elementoBotao
+        coluna.cartoes.length
       );
 
       if (!deveRemoverColuna) {
@@ -394,9 +329,6 @@
      */
     async function aoClicarAcao(elementoBotao) {
       switch (elementoBotao.dataset.acao) {
-        case "alterar-cor-cartao":
-          aoClicarAlterarCorCartao(elementoBotao);
-          return;
         case "remover-cartao":
           await aoClicarRemoverCartao(elementoBotao);
           return;
@@ -432,8 +364,7 @@
 
       const proximaDescricao = await editarDescricaoCartao(
         contextoCartao.cartao.titulo,
-        contextoCartao.cartao.descricao || "",
-        contextoCartao.elementoCartao
+        contextoCartao.cartao.descricao || ""
       );
 
       if (proximaDescricao === null) {
@@ -463,10 +394,6 @@
 
       if (elementoBotaoAcao) {
         await aoClicarAcao(elementoBotaoAcao);
-        return;
-      }
-
-      if (obterElementoMaisProximo(alvo, ".cartao__seletor-cor")) {
         return;
       }
 

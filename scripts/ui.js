@@ -7,12 +7,7 @@
  */
 (function anexarInterface(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
-  const {
-    opcoesCorCartao,
-    formatarQuantidadeCartoes,
-    normalizarCorHexadecimal,
-    clarearCorHexadecimal,
-  } = Kanban.utilitarios;
+  const { formatarQuantidadeCartoes } = Kanban.utilitarios;
 
   /**
    * Cria um elemento opcionalmente ja associado a uma classe CSS.
@@ -97,101 +92,12 @@
   }
 
   /**
-   * Aplica variaveis CSS derivadas da cor escolhida para o cartao.
-   * Assim o visual pode ser ajustado sem multiplicar classes de estilo.
-   *
-   * @param {HTMLElement} elementoCartao Elemento visual do cartao.
-   * @param {string} corCartaoNormalizada Cor ja validada em hexadecimal.
-   * @returns {void}
-   */
-  function aplicarTemaCorCartao(elementoCartao, corCartaoNormalizada) {
-    if (!corCartaoNormalizada) {
-      return;
-    }
-
-    elementoCartao.style.setProperty(
-      "--cartao-superficie",
-      clarearCorHexadecimal(corCartaoNormalizada, 0.82)
-    );
-    elementoCartao.style.setProperty(
-      "--cartao-borda",
-      clarearCorHexadecimal(corCartaoNormalizada, 0.6)
-    );
-    elementoCartao.style.setProperty("--cartao-destaque", corCartaoNormalizada);
-  }
-
-  /**
-   * Cria um botao individual dentro da paleta de cores do cartao.
-   *
-   * @param {string} idCartao Cartao que sera atualizado ao clicar.
-   * @param {{ rotulo: string, valor: string }} opcao Opcao da paleta.
-   * @param {string} corCartaoNormalizada Cor atualmente ativa no cartao.
-   * @returns {HTMLButtonElement} Botao de escolha de cor.
-   */
-  function criarBotaoOpcaoCor(idCartao, opcao, corCartaoNormalizada) {
-    const nomeClasse = opcao.valor
-      ? "cartao__opcao-cor"
-      : "cartao__opcao-cor cartao__opcao-cor--limpar";
-    const elementoBotao = criarBotao({
-      nomeClasse,
-      rotuloAria: opcao.rotulo,
-      titulo: opcao.rotulo,
-      conjuntoDados: {
-        acao: "alterar-cor-cartao",
-        cartaoId: idCartao,
-        valorCor: opcao.valor,
-      },
-    });
-
-    elementoBotao.setAttribute(
-      "aria-pressed",
-      String(opcao.valor === corCartaoNormalizada)
-    );
-
-    if (opcao.valor) {
-      elementoBotao.style.setProperty("--cartao-preenchimento-opcao-cor", opcao.valor);
-    }
-
-    return elementoBotao;
-  }
-
-  /**
-   * Monta o seletor de cor exibido em cada cartao.
-   *
-   * @param {string} idCartao Cartao associado ao seletor.
-   * @param {string} corCartaoNormalizada Cor atualmente ativa.
-   * @returns {HTMLDetailsElement} Componente expansivel com a paleta de cores.
-   */
-  function criarSeletorCor(idCartao, corCartaoNormalizada) {
-    const elementoSeletorCor = criarElemento("details", "cartao__seletor-cor");
-    const elementoAlternadorCor = criarElemento("summary", "cartao__alternador-cor");
-    const elementoMenuCor = criarElemento("div", "cartao__menu-cor");
-
-    elementoAlternadorCor.setAttribute("aria-label", "Escolher cor do cartao");
-    elementoAlternadorCor.title = "Escolher cor do cartao";
-    elementoAlternadorCor.style.setProperty(
-      "--cartao-preenchimento-botao-cor",
-      corCartaoNormalizada || "#efe5d8"
-    );
-
-    opcoesCorCartao.forEach(function anexarOpcaoCor(opcao) {
-      elementoMenuCor.append(
-        criarBotaoOpcaoCor(idCartao, opcao, corCartaoNormalizada)
-      );
-    });
-
-    elementoSeletorCor.append(elementoAlternadorCor, elementoMenuCor);
-    return elementoSeletorCor;
-  }
-
-  /**
-   * Agrupa os controles secundarios do cartao, como cor e exclusao.
+   * Agrupa os controles secundarios do cartao.
    *
    * @param {string} idCartao Cartao que recebera as acoes.
-   * @param {string} corCartaoNormalizada Cor ativa do cartao.
    * @returns {HTMLDivElement} Bloco de acoes do cartao.
    */
-  function criarAcoesCartao(idCartao, corCartaoNormalizada) {
+  function criarAcoesCartao(idCartao) {
     const elementoAcoesCartao = criarElemento("div", "cartao__acoes");
     const elementoBotaoRemoverCartao = criarBotao({
       nomeClasse: "cartao__botao-remover",
@@ -203,10 +109,7 @@
       },
     });
 
-    elementoAcoesCartao.append(
-      criarSeletorCor(idCartao, corCartaoNormalizada),
-      elementoBotaoRemoverCartao
-    );
+    elementoAcoesCartao.append(elementoBotaoRemoverCartao);
 
     return elementoAcoesCartao;
   }
@@ -230,12 +133,11 @@
   /**
    * Converte um cartao do estado em um elemento `<article>`.
    *
-   * @param {{ id: string, titulo: string, descricao?: string, cor?: string }} cartao Dados do cartao.
+   * @param {{ id: string, titulo: string, descricao?: string }} cartao Dados do cartao.
    * @returns {HTMLElement} Elemento completo do cartao.
    */
   function criarElementoCartao(cartao) {
     const elementoCartao = criarElemento("article", "cartao");
-    const corCartaoNormalizada = normalizarCorHexadecimal(cartao.cor);
     const elementoTitulo = criarCampoTitulo({
       nomeClasse: "cartao__campo-titulo",
       valor: cartao.titulo,
@@ -249,8 +151,7 @@
     const elementoDescricao = criarDescricaoCartao(cartao.descricao);
 
     elementoCartao.dataset.cartaoId = cartao.id;
-    aplicarTemaCorCartao(elementoCartao, corCartaoNormalizada);
-    elementoCartao.append(criarAcoesCartao(cartao.id, corCartaoNormalizada), elementoTitulo);
+    elementoCartao.append(criarAcoesCartao(cartao.id), elementoTitulo);
 
     if (elementoDescricao) {
       elementoCartao.append(elementoDescricao);

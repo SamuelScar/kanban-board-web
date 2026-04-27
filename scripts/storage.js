@@ -8,7 +8,6 @@
 (function anexarArmazenamento(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
   const CHAVE_ARMAZENAMENTO = "kanban-board-web:estado";
-  const { normalizarCorHexadecimal } = Kanban.utilitarios;
 
   /**
    * Verifica se um valor e uma string com conteudo util apos o `trim`.
@@ -32,8 +31,7 @@
         typeof cartao === "object" &&
         eTextoNaoVazio(cartao.id) &&
         eTextoNaoVazio(cartao.titulo) &&
-        (cartao.descricao === undefined || typeof cartao.descricao === "string") &&
-        (cartao.cor === undefined || normalizarCorHexadecimal(cartao.cor).length > 0)
+        (cartao.descricao === undefined || typeof cartao.descricao === "string")
     );
   }
 

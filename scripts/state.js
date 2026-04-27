@@ -7,7 +7,7 @@
  */
 (function anexarEstado(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
-  const { criarId, normalizarCorHexadecimal, normalizarTexto } = Kanban.utilitarios;
+  const { criarId, normalizarTexto } = Kanban.utilitarios;
 
   /**
    * Cria uma nova coluna com titulo saneado e lista de cartoes vazia.
@@ -385,39 +385,6 @@
   }
 
   /**
-   * Atualiza a cor de destaque do cartao.
-   * Quando a cor informada e invalida ou vazia, o atributo e removido.
-   *
-   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
-   * @param {string} idColuna Coluna que contem o cartao.
-   * @param {string} idCartao Cartao cuja cor sera alterada.
-   * @param {string} cor Nova cor em hexadecimal.
-   * @returns {{ colunas: Array<object> }} Estado com a cor normalizada.
-   */
-  function atualizarCorCartao(estadoQuadro, idColuna, idCartao, cor) {
-    const corNormalizada = normalizarCorHexadecimal(cor);
-
-    return comCartaoAtualizado(estadoQuadro, idColuna, idCartao, function atualizarCor(cartao) {
-      const corAtual = normalizarCorHexadecimal(cartao.cor);
-
-      if (corAtual === corNormalizada) {
-        return cartao;
-      }
-
-      if (!corNormalizada) {
-        const proximoCartao = { ...cartao };
-        delete proximoCartao.cor;
-        return proximoCartao;
-      }
-
-      return {
-        ...cartao,
-        cor: corNormalizada,
-      };
-    });
-  }
-
-  /**
    * Gera o estado inicial usado na primeira carga da aplicacao.
    * O conteudo exemplo ajuda a demonstrar a estrutura do quadro logo no inicio.
    *
@@ -471,7 +438,6 @@
   Kanban.estado = {
     adicionarCartao,
     adicionarColuna,
-    atualizarCorCartao,
     atualizarDescricaoCartao,
     atualizarTituloCartao,
     atualizarTituloColuna,

@@ -15,30 +15,4 @@
     grid-auto-columns: minmax(260px, 88vw);
     gap: 16px;
   }
-
-  /* O modal respeita margens menores em dispositivos estreitos. */
-  .dialogo-texto {
-    width: min(100vw - 20px, 560px);
-    border-radius: 24px;
-  }
-
-  /* Confirmacoes seguem a mesma regra, mas com largura base menor. */
-  .dialogo-texto--confirmacao {
-    width: min(100vw - 20px, 480px);
-  }
-
-  /* Padding interno reduzido para nao desperdicar espaco util. */
-  .dialogo-texto__formulario {
-    padding: 20px;
-  }
-
-  /* Em telas estreitas os botoes empilham para evitar compressao horizontal. */
-  .dialogo-texto__acoes {
-    flex-direction: column-reverse;
-  }
-
-  /* Cada botao ocupa a linha inteira para facilitar o toque. */
-  .dialogo-texto__botao {
-    width: 100%;
-  }
 }

@@ -82,11 +82,6 @@
   line-height: 1;
 }
 
-/* Durante o arraste, o cursor sinaliza que a coluna esta "presa" ao mouse. */
-.quadro--arrastando-coluna .coluna__cabecalho {
-  cursor: grabbing;
-}
-
 /* Lista interna que acomoda cartoes e recebe drops do SortableJS. */
 .coluna__cartoes {
   display: grid;
@@ -95,7 +90,6 @@
   gap: 12px;
   padding: 0 18px 18px;
   border-radius: 18px;
-  transition: background-color 160ms ease, box-shadow 160ms ease;
 }
 
 /* Acao primaria de adicionar um novo cartao dentro da coluna. */
@@ -122,16 +116,12 @@
 /* Cartao individual de tarefa. */
 .cartao {
   position: relative;
-  padding: 14px 14px 14px 24px;
-  border: 1px solid var(--cartao-borda, rgba(80, 63, 46, 0.08));
+  padding: 14px;
+  border: 1px solid rgba(80, 63, 46, 0.08);
   border-radius: 18px;
-  background: var(--cartao-superficie, var(--superficie-forte));
+  background: var(--superficie-forte);
   box-shadow: var(--sombra-cartao);
   cursor: pointer;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    opacity 160ms ease;
 }
 
 /* Area das acoes secundarias do cartao, alinhadas no topo. */
@@ -141,90 +131,6 @@
   justify-content: flex-end;
   gap: 8px;
   margin-bottom: 2px;
-}
-
-/* Componente de cores do cartao. */
-.cartao__seletor-cor {
-  position: relative;
-}
-
-/* Botao circular que abre a paleta de cores. */
-.cartao__alternador-cor {
-  position: relative;
-  display: block;
-  width: 22px;
-  height: 22px;
-  border: 1px solid rgba(80, 63, 46, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 252, 247, 0.95);
-  cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
-  list-style: none;
-}
-
-/* Remove o marcador padrao do `<summary>` para usar apenas o ponto de cor. */
-.cartao__alternador-cor::-webkit-details-marker {
-  display: none;
-}
-
-/* Disco interno que mostra a cor atualmente aplicada ao cartao. */
-.cartao__alternador-cor::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border-radius: 999px;
-  background: var(--cartao-preenchimento-botao-cor, #efe5d8);
-}
-
-/* Destaque sutil para indicar que a paleta esta aberta. */
-.cartao__seletor-cor[open] .cartao__alternador-cor {
-  border-color: rgba(185, 111, 59, 0.34);
-}
-
-/* Painel flutuante com todas as cores disponiveis. */
-.cartao__menu-cor {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 10;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  min-width: 112px;
-  padding: 10px;
-  border: 1px solid rgba(80, 63, 46, 0.12);
-  border-radius: 14px;
-  background: rgba(255, 252, 247, 0.98);
-  box-shadow: 0 14px 26px rgba(53, 42, 29, 0.1);
-  backdrop-filter: blur(8px);
-}
-
-/* Botao de escolha de cada cor da paleta. */
-.cartao__opcao-cor {
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border: 1px solid rgba(80, 63, 46, 0.12);
-  border-radius: 999px;
-  background: var(--cartao-preenchimento-opcao-cor, #efe5d8);
-  cursor: pointer;
-}
-
-/* Marca visual da cor atualmente selecionada. */
-.cartao__opcao-cor[aria-pressed="true"] {
-  box-shadow: 0 0 0 2px rgba(185, 111, 59, 0.18);
-}
-
-/* Opcao "sem cor": usa uma faixa diagonal para indicar limpeza. */
-.cartao__opcao-cor--limpar {
-  background:
-    linear-gradient(
-      135deg,
-      transparent 0 43%,
-      rgba(185, 111, 59, 0.45) 43% 57%,
-      transparent 57% 100%
-    ),
-    #fff8ee;
 }
 
 /* Ajuste fino do botao de remocao do cartao. */
@@ -251,70 +157,6 @@
   line-height: 1.45;
   font-size: 0.95rem;
   white-space: pre-line;
-}
-
-/* Barra lateral que herda a cor ativa do cartao. */
-.cartao::before {
-  content: "";
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 12px;
-  width: 3px;
-  border-radius: 999px;
-  background: var(--cartao-destaque, transparent);
-  opacity: 0.45;
-}
-
-/* Indicios visuais de que o quadro esta pronto para receber um cartao arrastado. */
-.quadro--arrastando .coluna__cartoes {
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(185, 111, 59, 0.14);
-}
-
-/* Mensagem exibida quando uma coluna vazia vira alvo de drop. */
-.quadro--arrastando .coluna__cartoes:empty::before {
-  content: "Solte aqui";
-  display: block;
-  padding: 16px 14px;
-  border: 1px dashed rgba(185, 111, 59, 0.26);
-  border-radius: 14px;
-  color: rgba(101, 89, 77, 0.88);
-  font-size: 0.92rem;
-  text-align: center;
-}
-
-/* Estados temporarios aplicados pelo SortableJS durante o arraste. */
-.cartao--selecionado {
-  box-shadow: 0 16px 26px rgba(53, 42, 29, 0.14);
-}
-
-.cartao--arrastando {
-  transform: rotate(1.6deg);
-  opacity: 0.98;
-}
-
-.cartao--fantasma {
-  border-style: dashed;
-  border-color: rgba(185, 111, 59, 0.34);
-  background: rgba(255, 248, 238, 0.76);
-  box-shadow: none;
-}
-
-/* Estados temporarios das colunas enquanto estao sendo arrastadas. */
-.coluna--selecionada {
-  box-shadow: 0 20px 32px rgba(60, 46, 30, 0.16);
-}
-
-.coluna--arrastando {
-  transform: rotate(1deg);
-}
-
-.coluna--fantasma {
-  border-style: dashed;
-  border-color: rgba(185, 111, 59, 0.34);
-  background: rgba(255, 248, 238, 0.5);
-  box-shadow: none;
 }
 
 /* Botao exibido ao final do quadro para criar novas colunas. */
