@@ -5,67 +5,67 @@
  *
  * @param {Window} global Objeto global do navegador.
  */
-(function attachStorage(global) {
+(function anexarArmazenamento(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
-  const STORAGE_KEY = "kanban-board-web:state";
-  const { normalizeHexColor } = Kanban.utils;
+  const CHAVE_ARMAZENAMENTO = "kanban-board-web:estado";
+  const { normalizarCorHexadecimal } = Kanban.utilitarios;
 
   /**
    * Verifica se um valor e uma string com conteudo util apos o `trim`.
    *
-   * @param {unknown} value Valor a validar.
+   * @param {unknown} valor Valor a validar.
    * @returns {boolean} `true` quando ha texto aproveitavel.
    */
-  function isNonEmptyString(value) {
-    return typeof value === "string" && value.trim().length > 0;
+  function eTextoNaoVazio(valor) {
+    return typeof valor === "string" && valor.trim().length > 0;
   }
 
   /**
-   * Valida a estrutura minima de um card salvo no navegador.
+   * Valida a estrutura minima de um cartao salvo no navegador.
    *
-   * @param {unknown} card Possivel card lido do armazenamento.
+   * @param {unknown} cartao Possivel cartao lido do armazenamento.
    * @returns {boolean} `true` quando o objeto pode ser usado com seguranca.
    */
-  function isValidCard(card) {
+  function eCartaoValido(cartao) {
     return Boolean(
-      card &&
-        typeof card === "object" &&
-        isNonEmptyString(card.id) &&
-        isNonEmptyString(card.title) &&
-        (card.description === undefined || typeof card.description === "string") &&
-        (card.color === undefined || normalizeHexColor(card.color).length > 0)
+      cartao &&
+        typeof cartao === "object" &&
+        eTextoNaoVazio(cartao.id) &&
+        eTextoNaoVazio(cartao.titulo) &&
+        (cartao.descricao === undefined || typeof cartao.descricao === "string") &&
+        (cartao.cor === undefined || normalizarCorHexadecimal(cartao.cor).length > 0)
     );
   }
 
   /**
-   * Valida a estrutura de uma coluna, incluindo todos os cards internos.
+   * Valida a estrutura de uma coluna, incluindo todos os cartoes internos.
    *
-   * @param {unknown} column Possivel coluna lida do armazenamento.
+   * @param {unknown} coluna Possivel coluna lida do armazenamento.
    * @returns {boolean} `true` quando a coluna segue o contrato esperado.
    */
-  function isValidColumn(column) {
+  function eColunaValida(coluna) {
     return Boolean(
-      column &&
-        typeof column === "object" &&
-        isNonEmptyString(column.id) &&
-        isNonEmptyString(column.title) &&
-        Array.isArray(column.cards) &&
-        column.cards.every(isValidCard)
+      coluna &&
+        typeof coluna === "object" &&
+        eTextoNaoVazio(coluna.id) &&
+        eTextoNaoVazio(coluna.titulo) &&
+        Array.isArray(coluna.cartoes) &&
+        coluna.cartoes.every(eCartaoValido)
     );
   }
 
   /**
    * Garante que o estado raiz tenha o formato esperado pela aplicacao.
    *
-   * @param {unknown} value Valor desserializado do `localStorage`.
+   * @param {unknown} valor Valor desserializado do `localStorage`.
    * @returns {boolean} `true` quando o estado pode ser reaproveitado.
    */
-  function isValidBoardState(value) {
+  function eEstadoQuadroValido(valor) {
     return Boolean(
-      value &&
-        typeof value === "object" &&
-        Array.isArray(value.columns) &&
-        value.columns.every(isValidColumn)
+      valor &&
+        typeof valor === "object" &&
+        Array.isArray(valor.colunas) &&
+        valor.colunas.every(eColunaValida)
     );
   }
 
@@ -73,20 +73,20 @@
    * Le o estado persistido e devolve `null` quando o dado nao existe
    * ou nao passa na validacao estrutural.
    *
-   * @returns {{ columns: Array<object> } | null} Estado salvo ou `null`.
+   * @returns {{ colunas: Array<object> } | null} Estado salvo ou `null`.
    */
-  function loadBoardState() {
+  function carregarQuadro() {
     try {
-      const serializedState = global.localStorage.getItem(STORAGE_KEY);
+      const estadoSerializado = global.localStorage.getItem(CHAVE_ARMAZENAMENTO);
 
-      if (!serializedState) {
+      if (!estadoSerializado) {
         return null;
       }
 
-      const parsedState = JSON.parse(serializedState);
-      return isValidBoardState(parsedState) ? parsedState : null;
-    } catch (error) {
-      console.warn("Nao foi possivel carregar o estado salvo.", error);
+      const estadoConvertido = JSON.parse(estadoSerializado);
+      return eEstadoQuadroValido(estadoConvertido) ? estadoConvertido : null;
+    } catch (erro) {
+      console.warn("Nao foi possivel carregar o estado salvo.", erro);
       return null;
     }
   }
@@ -94,19 +94,19 @@
   /**
    * Serializa e persiste o estado atual do quadro no navegador.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
    * @returns {void}
    */
-  function saveBoardState(boardState) {
+  function salvarQuadro(estadoQuadro) {
     try {
-      global.localStorage.setItem(STORAGE_KEY, JSON.stringify(boardState));
-    } catch (error) {
-      console.warn("Nao foi possivel salvar o estado atual.", error);
+      global.localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(estadoQuadro));
+    } catch (erro) {
+      console.warn("Nao foi possivel salvar o estado atual.", erro);
     }
   }
 
-  Kanban.storage = {
-    loadBoardState,
-    saveBoardState,
+  Kanban.armazenamento = {
+    carregarQuadro,
+    salvarQuadro,
   };
 })(window);

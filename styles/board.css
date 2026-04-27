@@ -1,5 +1,5 @@
-/* Grade horizontal do board. Cada coluna ocupa uma "faixa" independente. */
-.board {
+/* Grade horizontal do quadro. Cada coluna ocupa uma "faixa" independente. */
+.quadro {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(280px, 320px);
@@ -10,19 +10,19 @@
 }
 
 /* Bloco visual de cada coluna do Kanban. */
-.column {
+.coluna {
   display: flex;
   flex-direction: column;
   min-height: 420px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--borda);
   border-radius: 24px;
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
+  background: var(--superficie);
+  box-shadow: var(--sombra-suave);
   backdrop-filter: blur(8px);
 }
 
 /* Cabecalho arrastavel da coluna. */
-.column__header {
+.coluna__cabecalho {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -31,9 +31,9 @@
   cursor: grab;
 }
 
-/* Titulos editaveis de colunas e cards compartilham a mesma base visual. */
-.column__title-input,
-.card__title-input {
+/* Titulos editaveis de colunas e cartoes compartilham a mesma base visual. */
+.coluna__campo-titulo,
+.cartao__campo-titulo {
   width: 100%;
   border: 0;
   background: transparent;
@@ -42,33 +42,33 @@
 }
 
 /* O titulo da coluna recebe mais destaque por ser o agrupador principal. */
-.column__title-input {
+.coluna__campo-titulo {
   font-size: 1.05rem;
   font-weight: 700;
 }
 
 /* Remove o outline nativo porque o componente usa estilo proprio. */
-.column__title-input:focus,
-.card__title-input:focus {
+.coluna__campo-titulo:focus,
+.cartao__campo-titulo:focus {
   outline: none;
 }
 
 /* Mantem a selecao textual alinhada com a paleta visual do projeto. */
-.column__title-input::selection,
-.card__title-input::selection {
+.coluna__campo-titulo::selection,
+.cartao__campo-titulo::selection {
   background: rgba(185, 111, 59, 0.2);
 }
 
-/* Metadado que informa a quantidade atual de cards na coluna. */
-.column__meta {
+/* Metadado que informa a quantidade atual de cartoes na coluna. */
+.coluna__meta {
   margin: 6px 0 0;
-  color: var(--text-muted);
+  color: var(--texto-secundario);
   font-size: 0.9rem;
 }
 
 /* Botoes de remocao usam aparencia discreta para nao competir com o conteudo. */
-.column__remove-button,
-.card__remove-button {
+.coluna__botao-remover,
+.cartao__botao-remover {
   border: 0;
   background: transparent;
   color: #8f6c54;
@@ -76,19 +76,19 @@
 }
 
 /* Ajuste fino do botao de exclusao da coluna. */
-.column__remove-button {
+.coluna__botao-remover {
   padding: 2px 4px;
   font-size: 1rem;
   line-height: 1;
 }
 
 /* Durante o arraste, o cursor sinaliza que a coluna esta "presa" ao mouse. */
-.board--column-dragging .column__header {
+.quadro--arrastando-coluna .coluna__cabecalho {
   cursor: grabbing;
 }
 
-/* Lista interna que acomoda cards e recebe drops do SortableJS. */
-.column__cards {
+/* Lista interna que acomoda cartoes e recebe drops do SortableJS. */
+.coluna__cartoes {
   display: grid;
   flex: 1;
   min-height: 110px;
@@ -98,8 +98,8 @@
   transition: background-color 160ms ease, box-shadow 160ms ease;
 }
 
-/* Acao primaria de adicionar um novo card dentro da coluna. */
-.column__add-card-button {
+/* Acao primaria de adicionar um novo cartao dentro da coluna. */
+.coluna__botao-adicionar-cartao {
   align-self: flex-start;
   margin: 0 18px 18px;
   width: 40px;
@@ -107,26 +107,26 @@
   border: 1px dashed rgba(80, 63, 46, 0.2);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.46);
-  color: var(--accent);
+  color: var(--destaque);
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
 }
 
 /* Hover compartilhado entre os botoes de criacao. */
-.column__add-card-button:hover,
-.board__add-column-button:hover {
+.coluna__botao-adicionar-cartao:hover,
+.quadro__botao-adicionar-coluna:hover {
   filter: brightness(1.03);
 }
 
 /* Cartao individual de tarefa. */
-.card {
+.cartao {
   position: relative;
   padding: 14px 14px 14px 24px;
-  border: 1px solid var(--card-border, rgba(80, 63, 46, 0.08));
+  border: 1px solid var(--cartao-borda, rgba(80, 63, 46, 0.08));
   border-radius: 18px;
-  background: var(--card-surface, var(--surface-strong));
-  box-shadow: var(--shadow-card);
+  background: var(--cartao-superficie, var(--superficie-forte));
+  box-shadow: var(--sombra-cartao);
   cursor: pointer;
   transition:
     transform 160ms ease,
@@ -134,8 +134,8 @@
     opacity 160ms ease;
 }
 
-/* Area das acoes secundarias do card, alinhadas no topo. */
-.card__actions {
+/* Area das acoes secundarias do cartao, alinhadas no topo. */
+.cartao__acoes {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -143,13 +143,13 @@
   margin-bottom: 2px;
 }
 
-/* Componente de cores do card. */
-.card__color-picker {
+/* Componente de cores do cartao. */
+.cartao__seletor-cor {
   position: relative;
 }
 
 /* Botao circular que abre a paleta de cores. */
-.card__color-toggle {
+.cartao__alternador-cor {
   position: relative;
   display: block;
   width: 22px;
@@ -163,26 +163,26 @@
 }
 
 /* Remove o marcador padrao do `<summary>` para usar apenas o ponto de cor. */
-.card__color-toggle::-webkit-details-marker {
+.cartao__alternador-cor::-webkit-details-marker {
   display: none;
 }
 
-/* Disco interno que mostra a cor atualmente aplicada ao card. */
-.card__color-toggle::before {
+/* Disco interno que mostra a cor atualmente aplicada ao cartao. */
+.cartao__alternador-cor::before {
   content: "";
   position: absolute;
   inset: 5px;
   border-radius: 999px;
-  background: var(--card-color-button-fill, #efe5d8);
+  background: var(--cartao-preenchimento-botao-cor, #efe5d8);
 }
 
 /* Destaque sutil para indicar que a paleta esta aberta. */
-.card__color-picker[open] .card__color-toggle {
+.cartao__seletor-cor[open] .cartao__alternador-cor {
   border-color: rgba(185, 111, 59, 0.34);
 }
 
 /* Painel flutuante com todas as cores disponiveis. */
-.card__color-menu {
+.cartao__menu-cor {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
@@ -200,23 +200,23 @@
 }
 
 /* Botao de escolha de cada cor da paleta. */
-.card__color-option {
+.cartao__opcao-cor {
   width: 18px;
   height: 18px;
   padding: 0;
   border: 1px solid rgba(80, 63, 46, 0.12);
   border-radius: 999px;
-  background: var(--card-color-option-fill, #efe5d8);
+  background: var(--cartao-preenchimento-opcao-cor, #efe5d8);
   cursor: pointer;
 }
 
 /* Marca visual da cor atualmente selecionada. */
-.card__color-option[aria-pressed="true"] {
+.cartao__opcao-cor[aria-pressed="true"] {
   box-shadow: 0 0 0 2px rgba(185, 111, 59, 0.18);
 }
 
 /* Opcao "sem cor": usa uma faixa diagonal para indicar limpeza. */
-.card__color-option--clear {
+.cartao__opcao-cor--limpar {
   background:
     linear-gradient(
       135deg,
@@ -227,15 +227,15 @@
     #fff8ee;
 }
 
-/* Ajuste fino do botao de remocao do card. */
-.card__remove-button {
+/* Ajuste fino do botao de remocao do cartao. */
+.cartao__botao-remover {
   padding: 0;
   font-size: 0.95rem;
   line-height: 1;
 }
 
-/* Titulo do card editavel em linha. */
-.card__title-input {
+/* Titulo do cartao editavel em linha. */
+.cartao__campo-titulo {
   display: block;
   margin: 0 0 8px;
   font-size: 1rem;
@@ -244,17 +244,17 @@
   cursor: text;
 }
 
-/* Texto complementar do card. */
-.card__description {
+/* Texto complementar do cartao. */
+.cartao__descricao {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--texto-secundario);
   line-height: 1.45;
   font-size: 0.95rem;
   white-space: pre-line;
 }
 
-/* Barra lateral que herda a cor ativa do card. */
-.card::before {
+/* Barra lateral que herda a cor ativa do cartao. */
+.cartao::before {
   content: "";
   position: absolute;
   top: 12px;
@@ -262,18 +262,18 @@
   left: 12px;
   width: 3px;
   border-radius: 999px;
-  background: var(--card-accent, transparent);
+  background: var(--cartao-destaque, transparent);
   opacity: 0.45;
 }
 
-/* Indicios visuais de que o board esta pronto para receber um card arrastado. */
-.board--dragging .column__cards {
+/* Indicios visuais de que o quadro esta pronto para receber um cartao arrastado. */
+.quadro--arrastando .coluna__cartoes {
   background: rgba(255, 255, 255, 0.18);
   box-shadow: inset 0 0 0 1px rgba(185, 111, 59, 0.14);
 }
 
 /* Mensagem exibida quando uma coluna vazia vira alvo de drop. */
-.board--dragging .column__cards:empty::before {
+.quadro--arrastando .coluna__cartoes:empty::before {
   content: "Solte aqui";
   display: block;
   padding: 16px 14px;
@@ -285,16 +285,16 @@
 }
 
 /* Estados temporarios aplicados pelo SortableJS durante o arraste. */
-.card--chosen {
+.cartao--selecionado {
   box-shadow: 0 16px 26px rgba(53, 42, 29, 0.14);
 }
 
-.card--dragging {
+.cartao--arrastando {
   transform: rotate(1.6deg);
   opacity: 0.98;
 }
 
-.card--ghost {
+.cartao--fantasma {
   border-style: dashed;
   border-color: rgba(185, 111, 59, 0.34);
   background: rgba(255, 248, 238, 0.76);
@@ -302,28 +302,28 @@
 }
 
 /* Estados temporarios das colunas enquanto estao sendo arrastadas. */
-.column--chosen {
+.coluna--selecionada {
   box-shadow: 0 20px 32px rgba(60, 46, 30, 0.16);
 }
 
-.column--dragging {
+.coluna--arrastando {
   transform: rotate(1deg);
 }
 
-.column--ghost {
+.coluna--fantasma {
   border-style: dashed;
   border-color: rgba(185, 111, 59, 0.34);
   background: rgba(255, 248, 238, 0.5);
   box-shadow: none;
 }
 
-/* Botao exibido ao final do board para criar novas colunas. */
-.board__add-column-button {
+/* Botao exibido ao final do quadro para criar novas colunas. */
+.quadro__botao-adicionar-coluna {
   min-height: 96px;
   border: 1px dashed rgba(80, 63, 46, 0.2);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.42);
-  color: var(--accent);
+  color: var(--destaque);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;

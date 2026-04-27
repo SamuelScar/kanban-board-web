@@ -4,105 +4,105 @@
  *
  * @param {Window} global Objeto global do navegador.
  */
-(function attachModal(global) {
+(function anexarModal(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
-  const DIALOG_ID = "kanban-dialog";
-  let dialogRefs = null;
+  const ID_DIALOGO = "kanban-dialogo";
+  let referenciasDialogo = null;
 
   /**
    * Cria o elemento `<dialog>` e guarda referencias para os controles internos.
    * Isso evita buscar os mesmos elementos repetidamente a cada abertura.
    *
    * @returns {{
-   *   dialogElement: HTMLDialogElement,
-   *   eyebrowElement: HTMLElement | null,
-   *   titleElement: HTMLElement | null,
-   *   descriptionElement: HTMLElement | null,
-   *   fieldElement: HTMLElement | null,
-   *   labelElement: HTMLElement | null,
-   *   textareaElement: HTMLTextAreaElement | null,
-   *   cancelButton: HTMLButtonElement | null,
-   *   confirmButton: HTMLButtonElement | null
+   *   elementoDialogo: HTMLDialogElement,
+   *   elementoSobretitulo: HTMLElement | null,
+   *   elementoTitulo: HTMLElement | null,
+   *   elementoDescricao: HTMLElement | null,
+   *   elementoCampo: HTMLElement | null,
+   *   elementoRotulo: HTMLElement | null,
+   *   elementoAreaTexto: HTMLTextAreaElement | null,
+   *   botaoCancelar: HTMLButtonElement | null,
+   *   botaoConfirmar: HTMLButtonElement | null
    * }} Referencias reutilizadas pelo modulo.
    */
-  function createDialogElement() {
-    const dialogElement = document.createElement("dialog");
-    dialogElement.className = "text-dialog";
-    dialogElement.id = DIALOG_ID;
-    dialogElement.setAttribute("aria-labelledby", DIALOG_ID + "-title");
-    dialogElement.setAttribute("aria-describedby", DIALOG_ID + "-description");
-    dialogElement.innerHTML =
-      '<form method="dialog" class="text-dialog__form">' +
-      '  <div class="text-dialog__header">' +
-      '    <p class="text-dialog__eyebrow">Edicao</p>' +
-      '    <h2 class="text-dialog__title" id="' +
-      DIALOG_ID +
-      '-title"></h2>' +
-      '    <p class="text-dialog__description" id="' +
-      DIALOG_ID +
-      '-description"></p>' +
+  function criarElementoDialogo() {
+    const elementoDialogo = document.createElement("dialog");
+    elementoDialogo.className = "dialogo-texto";
+    elementoDialogo.id = ID_DIALOGO;
+    elementoDialogo.setAttribute("aria-labelledby", ID_DIALOGO + "-titulo");
+    elementoDialogo.setAttribute("aria-describedby", ID_DIALOGO + "-descricao");
+    elementoDialogo.innerHTML =
+      '<form method="dialog" class="dialogo-texto__formulario">' +
+      '  <div class="dialogo-texto__cabecalho">' +
+      '    <p class="dialogo-texto__sobretitulo">Edicao</p>' +
+      '    <h2 class="dialogo-texto__titulo" id="' +
+      ID_DIALOGO +
+      '-titulo"></h2>' +
+      '    <p class="dialogo-texto__descricao" id="' +
+      ID_DIALOGO +
+      '-descricao"></p>' +
       "  </div>" +
-      '  <label class="text-dialog__field">' +
-      '    <span class="text-dialog__label"></span>' +
-      '    <textarea class="text-dialog__textarea" rows="7"></textarea>' +
+      '  <label class="dialogo-texto__campo">' +
+      '    <span class="dialogo-texto__rotulo"></span>' +
+      '    <textarea class="dialogo-texto__area-texto" rows="7"></textarea>' +
       "  </label>" +
-      '  <div class="text-dialog__actions">' +
-      '    <button type="submit" value="cancel" class="text-dialog__button text-dialog__button--secondary"></button>' +
-      '    <button type="submit" value="confirm" class="text-dialog__button text-dialog__button--primary"></button>' +
+      '  <div class="dialogo-texto__acoes">' +
+      '    <button type="submit" value="cancelar" class="dialogo-texto__botao dialogo-texto__botao--secundario"></button>' +
+      '    <button type="submit" value="confirmar" class="dialogo-texto__botao dialogo-texto__botao--primario"></button>' +
       "  </div>" +
       "</form>";
 
-    document.body.append(dialogElement);
+    document.body.append(elementoDialogo);
 
     return {
-      dialogElement,
-      eyebrowElement: dialogElement.querySelector(".text-dialog__eyebrow"),
-      titleElement: dialogElement.querySelector(".text-dialog__title"),
-      descriptionElement: dialogElement.querySelector(".text-dialog__description"),
-      fieldElement: dialogElement.querySelector(".text-dialog__field"),
-      labelElement: dialogElement.querySelector(".text-dialog__label"),
-      textareaElement: dialogElement.querySelector(".text-dialog__textarea"),
-      cancelButton: dialogElement.querySelector('[value="cancel"]'),
-      confirmButton: dialogElement.querySelector('[value="confirm"]'),
+      elementoDialogo,
+      elementoSobretitulo: elementoDialogo.querySelector(".dialogo-texto__sobretitulo"),
+      elementoTitulo: elementoDialogo.querySelector(".dialogo-texto__titulo"),
+      elementoDescricao: elementoDialogo.querySelector(".dialogo-texto__descricao"),
+      elementoCampo: elementoDialogo.querySelector(".dialogo-texto__campo"),
+      elementoRotulo: elementoDialogo.querySelector(".dialogo-texto__rotulo"),
+      elementoAreaTexto: elementoDialogo.querySelector(".dialogo-texto__area-texto"),
+      botaoCancelar: elementoDialogo.querySelector('[value="cancelar"]'),
+      botaoConfirmar: elementoDialogo.querySelector('[value="confirmar"]'),
     };
   }
 
   /**
    * Garante que exista apenas uma instancia do dialogo no DOM.
    *
-   * @returns {ReturnType<typeof createDialogElement>} Referencias do dialogo.
+   * @returns {ReturnType<typeof criarElementoDialogo>} Referencias do dialogo.
    */
-  function ensureDialog() {
-    if (dialogRefs) {
-      return dialogRefs;
+  function garantirDialogo() {
+    if (referenciasDialogo) {
+      return referenciasDialogo;
     }
 
-    dialogRefs = createDialogElement();
-    return dialogRefs;
+    referenciasDialogo = criarElementoDialogo();
+    return referenciasDialogo;
   }
 
   /**
    * Posiciona o cursor ao final do texto para facilitar a edicao.
    *
-   * @param {HTMLTextAreaElement} textareaElement Campo de edicao do dialogo.
+   * @param {HTMLTextAreaElement} elementoAreaTexto Campo de edicao do dialogo.
    * @returns {void}
    */
-  function focusTextarea(textareaElement) {
-    textareaElement.focus();
+  function focarAreaTexto(elementoAreaTexto) {
+    elementoAreaTexto.focus();
 
-    const textLength = textareaElement.value.length;
-    textareaElement.setSelectionRange(textLength, textLength);
+    const quantidadeCaracteres = elementoAreaTexto.value.length;
+    elementoAreaTexto.setSelectionRange(quantidadeCaracteres, quantidadeCaracteres);
   }
 
   /**
    * Devolve o foco ao controle que abriu o modal, quando ele ainda existe no DOM.
    *
-   * @param {Element | null | undefined} element Elemento que deve recuperar o foco.
+   * @param {Element | null | undefined} elemento Elemento que deve recuperar o foco.
    * @returns {void}
    */
-  function restoreFocus(element) {
-    if (element instanceof HTMLElement && element.isConnected) {
-      element.focus();
+  function restaurarFoco(elemento) {
+    if (elemento instanceof HTMLElement && elemento.isConnected) {
+      elemento.focus();
     }
   }
 
@@ -110,109 +110,109 @@
    * Define qual controle recebe foco ao abrir o dialogo.
    * Em confirmacoes, prioriza o botao de cancelar para evitar exclusoes acidentais.
    *
-   * @param {"confirm" | "text"} mode Modo atual do dialogo.
-   * @param {{ cancelButton: HTMLButtonElement | null, textareaElement: HTMLTextAreaElement | null }} refs Referencias necessarias para o foco inicial.
+   * @param {"confirmacao" | "texto"} modo Modo atual do dialogo.
+   * @param {{ botaoCancelar: HTMLButtonElement | null, elementoAreaTexto: HTMLTextAreaElement | null }} referencias Referencias necessarias para o foco inicial.
    * @returns {void}
    */
-  function focusInitialControl(mode, refs) {
-    if (mode === "confirm") {
-      refs.cancelButton.focus();
+  function focarControleInicial(modo, referencias) {
+    if (modo === "confirmacao") {
+      referencias.botaoCancelar.focus();
       return;
     }
 
-    focusTextarea(refs.textareaElement);
+    focarAreaTexto(referencias.elementoAreaTexto);
   }
 
   /**
    * Abre o dialogo configurando titulo, descricao, campos e textos dos botoes.
    * O retorno e sempre uma `Promise`, permitindo tratar confirmacoes e edicoes
-   * com o mesmo fluxo assicrono.
+   * com o mesmo fluxo assincrono.
    *
    * @param {{
-   *   title: string,
-   *   mode?: "confirm" | "text",
-   *   eyebrow?: string,
-   *   description?: string,
-   *   label?: string,
+   *   titulo: string,
+   *   modo?: "confirmacao" | "texto",
+   *   sobretitulo?: string,
+   *   descricao?: string,
+   *   rotulo?: string,
    *   placeholder?: string,
-   *   confirmText?: string,
-   *   cancelText?: string,
-   *   initialValue?: string,
-   *   variant?: string,
-   *   restoreFocusElement?: Element | null
-   * }} options Configuracao visual e comportamental do dialogo.
+   *   textoConfirmar?: string,
+   *   textoCancelar?: string,
+   *   valorInicial?: string,
+   *   variacao?: string,
+   *   elementoRestaurarFoco?: Element | null
+   * }} opcoes Configuracao visual e comportamental do dialogo.
    * @returns {Promise<boolean | string | null>} Resultado da interacao.
    */
-  function openDialog(options) {
+  function abrirDialogo(opcoes) {
     const {
-      dialogElement,
-      eyebrowElement,
-      titleElement,
-      descriptionElement,
-      fieldElement,
-      labelElement,
-      textareaElement,
-      cancelButton,
-      confirmButton,
-    } = ensureDialog();
-    const restoreFocusElement = options.restoreFocusElement;
-    const mode = options.mode || "confirm";
+      elementoDialogo,
+      elementoSobretitulo,
+      elementoTitulo,
+      elementoDescricao,
+      elementoCampo,
+      elementoRotulo,
+      elementoAreaTexto,
+      botaoCancelar,
+      botaoConfirmar,
+    } = garantirDialogo();
+    const elementoRestaurarFoco = opcoes.elementoRestaurarFoco;
+    const modo = opcoes.modo || "confirmacao";
 
     if (
-      typeof dialogElement.showModal !== "function" ||
-      typeof dialogElement.close !== "function"
+      typeof elementoDialogo.showModal !== "function" ||
+      typeof elementoDialogo.close !== "function"
     ) {
       throw new Error("HTMLDialogElement nao esta disponivel neste navegador.");
     }
 
-    if (dialogElement.open) {
-      dialogElement.close("cancel");
+    if (elementoDialogo.open) {
+      elementoDialogo.close("cancelar");
     }
 
-    dialogElement.classList.toggle("text-dialog--confirm", mode === "confirm");
-    dialogElement.classList.toggle(
-      "text-dialog--destructive",
-      options.variant === "destructive"
+    elementoDialogo.classList.toggle("dialogo-texto--confirmacao", modo === "confirmacao");
+    elementoDialogo.classList.toggle(
+      "dialogo-texto--destrutivo",
+      opcoes.variacao === "destrutiva"
     );
-    eyebrowElement.textContent = options.eyebrow || "Edicao";
-    titleElement.textContent = options.title;
-    descriptionElement.textContent = options.description || "";
-    descriptionElement.hidden = !options.description;
-    fieldElement.hidden = mode !== "text";
-    labelElement.textContent = options.label || "";
-    textareaElement.value = options.initialValue || "";
-    textareaElement.placeholder = options.placeholder || "";
-    cancelButton.textContent = options.cancelText || "Cancelar";
-    confirmButton.textContent = options.confirmText || "Salvar";
-    dialogElement.returnValue = "";
+    elementoSobretitulo.textContent = opcoes.sobretitulo || "Edicao";
+    elementoTitulo.textContent = opcoes.titulo;
+    elementoDescricao.textContent = opcoes.descricao || "";
+    elementoDescricao.hidden = !opcoes.descricao;
+    elementoCampo.hidden = modo !== "texto";
+    elementoRotulo.textContent = opcoes.rotulo || "";
+    elementoAreaTexto.value = opcoes.valorInicial || "";
+    elementoAreaTexto.placeholder = opcoes.placeholder || "";
+    botaoCancelar.textContent = opcoes.textoCancelar || "Cancelar";
+    botaoConfirmar.textContent = opcoes.textoConfirmar || "Salvar";
+    elementoDialogo.returnValue = "";
 
-    return new Promise(function handleDialog(resolve) {
-      dialogElement.addEventListener(
+    return new Promise(function processarDialogo(resolve) {
+      elementoDialogo.addEventListener(
         "close",
-        function handleClose() {
-          const isConfirmed = dialogElement.returnValue === "confirm";
-          const result = isConfirmed
-            ? mode === "text"
-              ? textareaElement.value
+        function aoFecharDialogo() {
+          const confirmou = elementoDialogo.returnValue === "confirmar";
+          const resultado = confirmou
+            ? modo === "texto"
+              ? elementoAreaTexto.value
               : true
-            : mode === "text"
+            : modo === "texto"
               ? null
               : false;
 
-          if (!isConfirmed) {
-            restoreFocus(restoreFocusElement);
+          if (!confirmou) {
+            restaurarFoco(elementoRestaurarFoco);
           }
 
-          resolve(result);
+          resolve(resultado);
         },
         { once: true }
       );
 
-      dialogElement.showModal();
-      global.requestAnimationFrame(function focusControl() {
-        focusInitialControl(mode, {
-          cancelButton,
-          textareaElement,
+      elementoDialogo.showModal();
+      global.requestAnimationFrame(function focarControle() {
+        focarControleInicial(modo, {
+          botaoCancelar,
+          elementoAreaTexto,
         });
       });
     });
@@ -221,87 +221,87 @@
   /**
    * Atalho para abrir o dialogo no modo de confirmacao simples.
    *
-   * @param {object} options Configuracoes complementares do modal.
+   * @param {object} opcoes Configuracoes complementares do modal.
    * @returns {Promise<boolean>} `true` quando a acao foi confirmada.
    */
-  function confirmDialog(options) {
-    return openDialog({
-      mode: "confirm",
-      eyebrow: "Confirmacao",
-      confirmText: "Confirmar",
-      cancelText: "Cancelar",
-      ...options,
+  function abrirDialogoConfirmacao(opcoes) {
+    return abrirDialogo({
+      modo: "confirmacao",
+      sobretitulo: "Confirmacao",
+      textoConfirmar: "Confirmar",
+      textoCancelar: "Cancelar",
+      ...opcoes,
     });
   }
 
   /**
-   * Abre o editor de descricao de um card.
+   * Abre o editor de descricao de um cartao.
    *
-   * @param {string} cardTitle Titulo do card sendo editado.
-   * @param {string} currentDescription Descricao atual do card.
-   * @param {Element | null | undefined} restoreFocusElement Elemento que deve recuperar foco.
+   * @param {string} tituloCartao Titulo do cartao sendo editado.
+   * @param {string} descricaoAtual Descricao atual do cartao.
+   * @param {Element | null | undefined} elementoRestaurarFoco Elemento que deve recuperar foco.
    * @returns {Promise<string | null>} Novo texto ou `null` quando cancelado.
    */
-  function editCardDescription(cardTitle, currentDescription, restoreFocusElement) {
-    return openDialog({
-      mode: "text",
-      eyebrow: "Edicao",
-      title: "Editar descricao",
-      description: 'Card: "' + cardTitle + '"',
-      label: "Descricao do card",
-      placeholder: "Digite a descricao do card",
-      confirmText: "Salvar",
-      cancelText: "Cancelar",
-      initialValue: currentDescription,
-      restoreFocusElement,
+  function editarDescricaoCartao(tituloCartao, descricaoAtual, elementoRestaurarFoco) {
+    return abrirDialogo({
+      modo: "texto",
+      sobretitulo: "Edicao",
+      titulo: "Editar descricao",
+      descricao: 'Cartao: "' + tituloCartao + '"',
+      rotulo: "Descricao do cartao",
+      placeholder: "Digite a descricao do cartao",
+      textoConfirmar: "Salvar",
+      textoCancelar: "Cancelar",
+      valorInicial: descricaoAtual,
+      elementoRestaurarFoco,
     });
   }
 
   /**
-   * Solicita confirmacao antes de remover um card.
+   * Solicita confirmacao antes de remover um cartao.
    *
-   * @param {Element | null | undefined} restoreFocusElement Elemento que abre o modal.
-   * @returns {Promise<boolean>} `true` quando o card deve ser removido.
+   * @param {Element | null | undefined} elementoRestaurarFoco Elemento que abre o modal.
+   * @returns {Promise<boolean>} `true` quando o cartao deve ser removido.
    */
-  function confirmCardRemoval(restoreFocusElement) {
-    return confirmDialog({
-      variant: "destructive",
-      title: "Excluir card?",
-      description: "Essa acao nao pode ser desfeita.",
-      confirmText: "Excluir",
-      restoreFocusElement,
+  function confirmarRemocaoCartao(elementoRestaurarFoco) {
+    return abrirDialogoConfirmacao({
+      variacao: "destrutiva",
+      titulo: "Excluir cartao?",
+      descricao: "Essa acao nao pode ser desfeita.",
+      textoConfirmar: "Excluir",
+      elementoRestaurarFoco,
     });
   }
 
   /**
    * Solicita confirmacao antes de remover uma coluna, incluindo o impacto
-   * sobre a quantidade de cards contidos nela.
+   * sobre a quantidade de cartoes contidos nela.
    *
-   * @param {string} columnTitle Titulo da coluna.
-   * @param {number} cardCount Quantidade de cards dentro da coluna.
-   * @param {Element | null | undefined} restoreFocusElement Elemento que abre o modal.
+   * @param {string} tituloColuna Titulo da coluna.
+   * @param {number} quantidadeCartoes Quantidade de cartoes dentro da coluna.
+   * @param {Element | null | undefined} elementoRestaurarFoco Elemento que abre o modal.
    * @returns {Promise<boolean>} `true` quando a coluna deve ser removida.
    */
-  function confirmColumnRemoval(columnTitle, cardCount, restoreFocusElement) {
-    return confirmDialog({
-      variant: "destructive",
-      title: "Excluir coluna?",
-      description:
-        cardCount === 0
-          ? 'A coluna "' + columnTitle + '" sera removida.'
+  function confirmarRemocaoColuna(tituloColuna, quantidadeCartoes, elementoRestaurarFoco) {
+    return abrirDialogoConfirmacao({
+      variacao: "destrutiva",
+      titulo: "Excluir coluna?",
+      descricao:
+        quantidadeCartoes === 0
+          ? 'A coluna "' + tituloColuna + '" sera removida.'
           : 'A coluna "' +
-            columnTitle +
+            tituloColuna +
             '" e seus ' +
-            cardCount +
-            " cards serao removidos.",
-      confirmText: "Excluir",
-      restoreFocusElement,
+            quantidadeCartoes +
+            " cartoes serao removidos.",
+      textoConfirmar: "Excluir",
+      elementoRestaurarFoco,
     });
   }
 
   Kanban.modal = {
-    confirmCardRemoval,
-    confirmColumnRemoval,
-    editCardDescription,
+    confirmarRemocaoCartao,
+    confirmarRemocaoColuna,
+    editarDescricaoCartao,
   };
 })(window);

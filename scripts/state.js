@@ -1,147 +1,151 @@
 /**
- * Concentra todas as operacoes puras sobre o estado do board.
+ * Concentra todas as operacoes puras sobre o estado do quadro.
  * As funcoes deste modulo sempre retornam novas estruturas quando algo muda,
  * o que facilita a renderizacao e o estudo do fluxo de dados.
  *
  * @param {Window} global Objeto global do navegador.
  */
-(function attachState(global) {
+(function anexarEstado(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
-  const { createId, normalizeHexColor, normalizeText } = Kanban.utils;
+  const { criarId, normalizarCorHexadecimal, normalizarTexto } = Kanban.utilitarios;
 
   /**
-   * Cria uma nova coluna com titulo saneado e lista de cards vazia.
+   * Cria uma nova coluna com titulo saneado e lista de cartoes vazia.
    *
-   * @param {string} title Titulo informado pela interface.
-   * @returns {{ id: string, title: string, cards: Array<object> }} Nova coluna.
+   * @param {string} titulo Titulo informado pela interface.
+   * @returns {{ id: string, titulo: string, cartoes: Array<object> }} Nova coluna.
    */
-  function createColumn(title) {
-    const normalizedTitle = normalizeText(title) || "Nova coluna";
+  function criarColuna(titulo) {
+    const tituloNormalizado = normalizarTexto(titulo) || "Nova coluna";
 
     return {
-      id: createId("column"),
-      title: normalizedTitle,
-      cards: [],
+      id: criarId("coluna"),
+      titulo: tituloNormalizado,
+      cartoes: [],
     };
   }
 
   /**
    * Adiciona uma coluna ao fim do quadro.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} [title] Titulo opcional da nova coluna.
-   * @returns {{ columns: Array<object> }} Novo estado com a coluna criada.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} [titulo] Titulo opcional da nova coluna.
+   * @returns {{ colunas: Array<object> }} Novo estado com a coluna criada.
    */
-  function addColumn(boardState, title) {
-    const newColumn = createColumn(title);
+  function adicionarColuna(estadoQuadro, titulo) {
+    const novaColuna = criarColuna(titulo);
 
     return {
-      ...boardState,
-      columns: [...boardState.columns, newColumn],
+      ...estadoQuadro,
+      colunas: [...estadoQuadro.colunas, novaColuna],
     };
   }
 
   /**
-   * Cria um card com titulo saneado e descricao vazia por padrao.
+   * Cria um cartao com titulo saneado e descricao vazia por padrao.
    *
-   * @param {string} title Titulo informado pela interface.
-   * @returns {{ id: string, title: string, description: string }} Novo card.
+   * @param {string} titulo Titulo informado pela interface.
+   * @returns {{ id: string, titulo: string, descricao: string }} Novo cartao.
    */
-  function createCard(title) {
-    const normalizedTitle = normalizeText(title) || "Novo card";
+  function criarCartao(titulo) {
+    const tituloNormalizado = normalizarTexto(titulo) || "Novo cartao";
 
     return {
-      id: createId("card"),
-      title: normalizedTitle,
-      description: "",
+      id: criarId("cartao"),
+      titulo: tituloNormalizado,
+      descricao: "",
     };
   }
 
   /**
    * Atualiza uma unica coluna sem mutar o restante da estrutura.
-   * Se o `updater` nao alterar nada, o estado original e reaproveitado.
+   * Se o `atualizador` nao alterar nada, o estado original e reaproveitado.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Identificador da coluna a ser atualizada.
-   * @param {(column: object) => object} updater Funcao que produz a proxima coluna.
-   * @returns {{ columns: Array<object> }} Estado atualizado ou o original.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Identificador da coluna a ser atualizada.
+   * @param {(coluna: object) => object} atualizador Funcao que produz a proxima coluna.
+   * @returns {{ colunas: Array<object> }} Estado atualizado ou o original.
    */
-  function withUpdatedColumn(boardState, columnId, updater) {
-    let didUpdate = false;
+  function comColunaAtualizada(estadoQuadro, idColuna, atualizador) {
+    let houveAtualizacao = false;
 
-    const columns = boardState.columns.map(function mapColumn(column) {
-      if (column.id !== columnId) {
-        return column;
+    const colunas = estadoQuadro.colunas.map(function mapearColuna(coluna) {
+      if (coluna.id !== idColuna) {
+        return coluna;
       }
 
-      const nextColumn = updater(column);
+      const proximaColuna = atualizador(coluna);
 
-      if (nextColumn === column) {
-        return column;
+      if (proximaColuna === coluna) {
+        return coluna;
       }
 
-      didUpdate = true;
-      return nextColumn;
+      houveAtualizacao = true;
+      return proximaColuna;
     });
 
-    return didUpdate
+    return houveAtualizacao
       ? {
-          ...boardState,
-          columns,
+          ...estadoQuadro,
+          colunas,
         }
-      : boardState;
+      : estadoQuadro;
   }
 
   /**
-   * Atualiza um card localizado dentro de uma coluna especifica.
+   * Atualiza um cartao localizado dentro de uma coluna especifica.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna que contem o card.
-   * @param {string} cardId Card a ser transformado.
-   * @param {(card: object) => object} updater Funcao que produz o proximo card.
-   * @returns {{ columns: Array<object> }} Estado atualizado ou o original.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna que contem o cartao.
+   * @param {string} idCartao Cartao a ser transformado.
+   * @param {(cartao: object) => object} atualizador Funcao que produz o proximo cartao.
+   * @returns {{ colunas: Array<object> }} Estado atualizado ou o original.
    */
-  function withUpdatedCard(boardState, columnId, cardId, updater) {
-    return withUpdatedColumn(boardState, columnId, function updateColumnCards(column) {
-      let didUpdate = false;
+  function comCartaoAtualizado(estadoQuadro, idColuna, idCartao, atualizador) {
+    return comColunaAtualizada(
+      estadoQuadro,
+      idColuna,
+      function atualizarCartoesColuna(coluna) {
+        let houveAtualizacao = false;
 
-      const cards = column.cards.map(function mapCard(card) {
-        if (card.id !== cardId) {
-          return card;
-        }
-
-        const nextCard = updater(card);
-
-        if (nextCard === card) {
-          return card;
-        }
-
-        didUpdate = true;
-        return nextCard;
-      });
-
-      return didUpdate
-        ? {
-            ...column,
-            cards,
+        const cartoes = coluna.cartoes.map(function mapearCartao(cartao) {
+          if (cartao.id !== idCartao) {
+            return cartao;
           }
-        : column;
-    });
+
+          const proximoCartao = atualizador(cartao);
+
+          if (proximoCartao === cartao) {
+            return cartao;
+          }
+
+          houveAtualizacao = true;
+          return proximoCartao;
+        });
+
+        return houveAtualizacao
+          ? {
+              ...coluna,
+              cartoes,
+            }
+          : coluna;
+      }
+    );
   }
 
   /**
-   * Cria um card e o adiciona ao final da coluna informada.
+   * Cria um cartao e o adiciona ao final da coluna informada.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna que recebera o novo card.
-   * @param {string} [title] Titulo opcional do novo card.
-   * @returns {{ columns: Array<object> }} Novo estado com o card inserido.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna que recebera o novo cartao.
+   * @param {string} [titulo] Titulo opcional do novo cartao.
+   * @returns {{ colunas: Array<object> }} Novo estado com o cartao inserido.
    */
-  function addCard(boardState, columnId, title) {
-    return withUpdatedColumn(boardState, columnId, function appendCard(column) {
+  function adicionarCartao(estadoQuadro, idColuna, titulo) {
+    return comColunaAtualizada(estadoQuadro, idColuna, function anexarCartao(coluna) {
       return {
-        ...column,
-        cards: [...column.cards, createCard(title)],
+        ...coluna,
+        cartoes: [...coluna.cartoes, criarCartao(titulo)],
       };
     });
   }
@@ -149,309 +153,314 @@
   /**
    * Remove uma coluna inteira do quadro.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna a remover.
-   * @returns {{ columns: Array<object> }} Estado sem a coluna, se ela existir.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna a remover.
+   * @returns {{ colunas: Array<object> }} Estado sem a coluna, se ela existir.
    */
-  function removeColumn(boardState, columnId) {
-    const nextColumns = boardState.columns.filter(function filterColumn(column) {
-      return column.id !== columnId;
+  function removerColuna(estadoQuadro, idColuna) {
+    const proximasColunas = estadoQuadro.colunas.filter(function filtrarColuna(coluna) {
+      return coluna.id !== idColuna;
     });
 
-    return nextColumns.length === boardState.columns.length
-      ? boardState
+    return proximasColunas.length === estadoQuadro.colunas.length
+      ? estadoQuadro
       : {
-          ...boardState,
-          columns: nextColumns,
+          ...estadoQuadro,
+          colunas: proximasColunas,
         };
   }
 
   /**
-   * Remove um card de dentro de uma coluna especifica.
+   * Remove um cartao de dentro de uma coluna especifica.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna que contem o card.
-   * @param {string} cardId Card a remover.
-   * @returns {{ columns: Array<object> }} Estado atualizado sem o card.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna que contem o cartao.
+   * @param {string} idCartao Cartao a remover.
+   * @returns {{ colunas: Array<object> }} Estado atualizado sem o cartao.
    */
-  function removeCard(boardState, columnId, cardId) {
-    return withUpdatedColumn(boardState, columnId, function removeColumnCard(column) {
-      const nextCards = column.cards.filter(function filterCard(card) {
-        return card.id !== cardId;
+  function removerCartao(estadoQuadro, idColuna, idCartao) {
+    return comColunaAtualizada(estadoQuadro, idColuna, function removerCartaoColuna(coluna) {
+      const proximosCartoes = coluna.cartoes.filter(function filtrarCartao(cartao) {
+        return cartao.id !== idCartao;
       });
 
-      return nextCards.length === column.cards.length
-        ? column
+      return proximosCartoes.length === coluna.cartoes.length
+        ? coluna
         : {
-            ...column,
-            cards: nextCards,
+            ...coluna,
+            cartoes: proximosCartoes,
           };
     });
   }
 
   /**
-   * Reordena colunas no eixo horizontal do board.
+   * Reordena colunas no eixo horizontal do quadro.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna arrastada.
-   * @param {number} targetIndex Nova posicao desejada.
-   * @returns {{ columns: Array<object> }} Estado com a nova ordem.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna arrastada.
+   * @param {number} indiceDestino Nova posicao desejada.
+   * @returns {{ colunas: Array<object> }} Estado com a nova ordem.
    */
-  function moveColumn(boardState, columnId, targetIndex) {
-    const sourceIndex = boardState.columns.findIndex(function matchColumn(column) {
-      return column.id === columnId;
+  function moverColuna(estadoQuadro, idColuna, indiceDestino) {
+    const indiceOrigem = estadoQuadro.colunas.findIndex(function localizarColuna(coluna) {
+      return coluna.id === idColuna;
     });
 
-    if (sourceIndex === -1) {
-      return boardState;
+    if (indiceOrigem === -1) {
+      return estadoQuadro;
     }
 
-    const normalizedTargetIndex = Math.max(
+    const indiceDestinoNormalizado = Math.max(
       0,
-      Math.min(targetIndex, boardState.columns.length - 1)
+      Math.min(indiceDestino, estadoQuadro.colunas.length - 1)
     );
 
-    if (sourceIndex === normalizedTargetIndex) {
-      return boardState;
+    if (indiceOrigem === indiceDestinoNormalizado) {
+      return estadoQuadro;
     }
 
-    const nextColumns = [...boardState.columns];
-    const movedColumn = nextColumns.splice(sourceIndex, 1)[0];
+    const proximasColunas = [...estadoQuadro.colunas];
+    const colunaMovida = proximasColunas.splice(indiceOrigem, 1)[0];
 
-    nextColumns.splice(normalizedTargetIndex, 0, movedColumn);
+    proximasColunas.splice(indiceDestinoNormalizado, 0, colunaMovida);
 
     return {
-      ...boardState,
-      columns: nextColumns,
+      ...estadoQuadro,
+      colunas: proximasColunas,
     };
   }
 
   /**
-   * Move um card dentro da mesma coluna ou entre colunas diferentes.
+   * Move um cartao dentro da mesma coluna ou entre colunas diferentes.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} sourceColumnId Coluna de origem.
-   * @param {string} cardId Card que esta sendo movido.
-   * @param {string} targetColumnId Coluna de destino.
-   * @param {number} targetIndex Posicao final dentro da coluna de destino.
-   * @returns {{ columns: Array<object> }} Estado com os cards reordenados.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColunaOrigem Coluna de origem.
+   * @param {string} idCartao Cartao que esta sendo movido.
+   * @param {string} idColunaDestino Coluna de destino.
+   * @param {number} indiceDestino Posicao final dentro da coluna de destino.
+   * @returns {{ colunas: Array<object> }} Estado com os cartoes reordenados.
    */
-  function moveCard(
-    boardState,
-    sourceColumnId,
-    cardId,
-    targetColumnId,
-    targetIndex
+  function moverCartao(
+    estadoQuadro,
+    idColunaOrigem,
+    idCartao,
+    idColunaDestino,
+    indiceDestino
   ) {
-    const sourceColumnIndex = boardState.columns.findIndex(function matchSource(column) {
-      return column.id === sourceColumnId;
+    const indiceColunaOrigem = estadoQuadro.colunas.findIndex(function localizarOrigem(coluna) {
+      return coluna.id === idColunaOrigem;
     });
-    const targetColumnIndex = boardState.columns.findIndex(function matchTarget(column) {
-      return column.id === targetColumnId;
-    });
-
-    if (sourceColumnIndex === -1 || targetColumnIndex === -1) {
-      return boardState;
-    }
-
-    const sourceColumn = boardState.columns[sourceColumnIndex];
-    const sourceCardIndex = sourceColumn.cards.findIndex(function matchCard(card) {
-      return card.id === cardId;
+    const indiceColunaDestino = estadoQuadro.colunas.findIndex(function localizarDestino(coluna) {
+      return coluna.id === idColunaDestino;
     });
 
-    if (sourceCardIndex === -1) {
-      return boardState;
+    if (indiceColunaOrigem === -1 || indiceColunaDestino === -1) {
+      return estadoQuadro;
     }
 
-    if (sourceColumnId === targetColumnId && sourceCardIndex === targetIndex) {
-      return boardState;
+    const colunaOrigem = estadoQuadro.colunas[indiceColunaOrigem];
+    const indiceCartaoOrigem = colunaOrigem.cartoes.findIndex(function localizarCartao(cartao) {
+      return cartao.id === idCartao;
+    });
+
+    if (indiceCartaoOrigem === -1) {
+      return estadoQuadro;
     }
 
-    const nextColumns = [...boardState.columns];
-    const nextSourceColumn = {
-      ...nextColumns[sourceColumnIndex],
-      cards: [...nextColumns[sourceColumnIndex].cards],
+    if (idColunaOrigem === idColunaDestino && indiceCartaoOrigem === indiceDestino) {
+      return estadoQuadro;
+    }
+
+    const proximasColunas = [...estadoQuadro.colunas];
+    const proximaColunaOrigem = {
+      ...proximasColunas[indiceColunaOrigem],
+      cartoes: [...proximasColunas[indiceColunaOrigem].cartoes],
     };
-    const nextTargetColumn =
-      sourceColumnIndex === targetColumnIndex
-        ? nextSourceColumn
+    const proximaColunaDestino =
+      indiceColunaOrigem === indiceColunaDestino
+        ? proximaColunaOrigem
         : {
-            ...nextColumns[targetColumnIndex],
-            cards: [...nextColumns[targetColumnIndex].cards],
+            ...proximasColunas[indiceColunaDestino],
+            cartoes: [...proximasColunas[indiceColunaDestino].cartoes],
           };
 
-    nextColumns[sourceColumnIndex] = nextSourceColumn;
-    nextColumns[targetColumnIndex] = nextTargetColumn;
+    proximasColunas[indiceColunaOrigem] = proximaColunaOrigem;
+    proximasColunas[indiceColunaDestino] = proximaColunaDestino;
 
-    const movedCard = nextSourceColumn.cards.splice(sourceCardIndex, 1)[0];
-    const normalizedTargetIndex = Math.max(
+    const cartaoMovido = proximaColunaOrigem.cartoes.splice(indiceCartaoOrigem, 1)[0];
+    const indiceDestinoNormalizado = Math.max(
       0,
-      Math.min(targetIndex, nextTargetColumn.cards.length)
+      Math.min(indiceDestino, proximaColunaDestino.cartoes.length)
     );
 
-    nextTargetColumn.cards.splice(normalizedTargetIndex, 0, movedCard);
+    proximaColunaDestino.cartoes.splice(indiceDestinoNormalizado, 0, cartaoMovido);
 
     return {
-      ...boardState,
-      columns: nextColumns,
+      ...estadoQuadro,
+      colunas: proximasColunas,
     };
   }
 
   /**
    * Atualiza o titulo de uma coluna quando o texto informado e valido.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna a renomear.
-   * @param {string} title Novo titulo digitado pelo usuario.
-   * @returns {{ columns: Array<object> }} Estado com o titulo atualizado.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna a renomear.
+   * @param {string} titulo Novo titulo digitado pelo usuario.
+   * @returns {{ colunas: Array<object> }} Estado com o titulo atualizado.
    */
-  function updateColumnTitle(boardState, columnId, title) {
-    const normalizedTitle = normalizeText(title);
+  function atualizarTituloColuna(estadoQuadro, idColuna, titulo) {
+    const tituloNormalizado = normalizarTexto(titulo);
 
-    if (!normalizedTitle) {
-      return boardState;
+    if (!tituloNormalizado) {
+      return estadoQuadro;
     }
 
-    return withUpdatedColumn(boardState, columnId, function updateColumn(column) {
-      return column.title === normalizedTitle
-        ? column
+    return comColunaAtualizada(estadoQuadro, idColuna, function atualizarColuna(coluna) {
+      return coluna.titulo === tituloNormalizado
+        ? coluna
         : {
-            ...column,
-            title: normalizedTitle,
+            ...coluna,
+            titulo: tituloNormalizado,
           };
     });
   }
 
   /**
-   * Atualiza o titulo de um card especifico.
+   * Atualiza o titulo de um cartao especifico.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna que contem o card.
-   * @param {string} cardId Card a renomear.
-   * @param {string} title Novo titulo digitado pelo usuario.
-   * @returns {{ columns: Array<object> }} Estado com o titulo do card atualizado.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna que contem o cartao.
+   * @param {string} idCartao Cartao a renomear.
+   * @param {string} titulo Novo titulo digitado pelo usuario.
+   * @returns {{ colunas: Array<object> }} Estado com o titulo do cartao atualizado.
    */
-  function updateCardTitle(boardState, columnId, cardId, title) {
-    const normalizedTitle = normalizeText(title);
+  function atualizarTituloCartao(estadoQuadro, idColuna, idCartao, titulo) {
+    const tituloNormalizado = normalizarTexto(titulo);
 
-    if (!normalizedTitle) {
-      return boardState;
+    if (!tituloNormalizado) {
+      return estadoQuadro;
     }
 
-    return withUpdatedCard(boardState, columnId, cardId, function updateTitle(card) {
-      return card.title === normalizedTitle
-        ? card
-        : {
-            ...card,
-            title: normalizedTitle,
-          };
-    });
-  }
-
-  /**
-   * Atualiza a descricao textual de um card.
-   *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna que contem o card.
-   * @param {string} cardId Card cuja descricao sera alterada.
-   * @param {string} description Novo texto descritivo.
-   * @returns {{ columns: Array<object> }} Estado com a descricao atualizada.
-   */
-  function updateCardDescription(boardState, columnId, cardId, description) {
-    const normalizedDescription = normalizeText(description);
-
-    return withUpdatedCard(
-      boardState,
-      columnId,
-      cardId,
-      function updateDescription(card) {
-        return card.description === normalizedDescription
-          ? card
+    return comCartaoAtualizado(
+      estadoQuadro,
+      idColuna,
+      idCartao,
+      function atualizarTitulo(cartao) {
+        return cartao.titulo === tituloNormalizado
+          ? cartao
           : {
-              ...card,
-              description: normalizedDescription,
+              ...cartao,
+              titulo: tituloNormalizado,
             };
       }
     );
   }
 
   /**
-   * Atualiza a cor de destaque do card.
+   * Atualiza a descricao textual de um cartao.
+   *
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna que contem o cartao.
+   * @param {string} idCartao Cartao cuja descricao sera alterada.
+   * @param {string} descricao Novo texto descritivo.
+   * @returns {{ colunas: Array<object> }} Estado com a descricao atualizada.
+   */
+  function atualizarDescricaoCartao(estadoQuadro, idColuna, idCartao, descricao) {
+    const descricaoNormalizada = normalizarTexto(descricao);
+
+    return comCartaoAtualizado(
+      estadoQuadro,
+      idColuna,
+      idCartao,
+      function atualizarDescricao(cartao) {
+        return cartao.descricao === descricaoNormalizada
+          ? cartao
+          : {
+              ...cartao,
+              descricao: descricaoNormalizada,
+            };
+      }
+    );
+  }
+
+  /**
+   * Atualiza a cor de destaque do cartao.
    * Quando a cor informada e invalida ou vazia, o atributo e removido.
    *
-   * @param {{ columns: Array<object> }} boardState Estado atual do board.
-   * @param {string} columnId Coluna que contem o card.
-   * @param {string} cardId Card cuja cor sera alterada.
-   * @param {string} color Nova cor em hexadecimal.
-   * @returns {{ columns: Array<object> }} Estado com a cor normalizada.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual do quadro.
+   * @param {string} idColuna Coluna que contem o cartao.
+   * @param {string} idCartao Cartao cuja cor sera alterada.
+   * @param {string} cor Nova cor em hexadecimal.
+   * @returns {{ colunas: Array<object> }} Estado com a cor normalizada.
    */
-  function updateCardColor(boardState, columnId, cardId, color) {
-    const normalizedColor = normalizeHexColor(color);
+  function atualizarCorCartao(estadoQuadro, idColuna, idCartao, cor) {
+    const corNormalizada = normalizarCorHexadecimal(cor);
 
-    return withUpdatedCard(boardState, columnId, cardId, function updateColor(card) {
-      const currentColor = normalizeHexColor(card.color);
+    return comCartaoAtualizado(estadoQuadro, idColuna, idCartao, function atualizarCor(cartao) {
+      const corAtual = normalizarCorHexadecimal(cartao.cor);
 
-      if (currentColor === normalizedColor) {
-        return card;
+      if (corAtual === corNormalizada) {
+        return cartao;
       }
 
-      if (!normalizedColor) {
-        const nextCard = { ...card };
-        delete nextCard.color;
-        return nextCard;
+      if (!corNormalizada) {
+        const proximoCartao = { ...cartao };
+        delete proximoCartao.cor;
+        return proximoCartao;
       }
 
       return {
-        ...card,
-        color: normalizedColor,
+        ...cartao,
+        cor: corNormalizada,
       };
     });
   }
 
   /**
    * Gera o estado inicial usado na primeira carga da aplicacao.
-   * O conteudo exemplo ajuda a demonstrar a estrutura do board logo no inicio.
+   * O conteudo exemplo ajuda a demonstrar a estrutura do quadro logo no inicio.
    *
-   * @returns {{ columns: Array<object> }} Estrutura inicial do quadro.
+   * @returns {{ colunas: Array<object> }} Estrutura inicial do quadro.
    */
-  function createInitialBoardState() {
+  function criarQuadroInicial() {
     return {
-      columns: [
+      colunas: [
         {
-          id: createId("column"),
-          title: "Backlog",
-          cards: [
+          id: criarId("coluna"),
+          titulo: "Backlog",
+          cartoes: [
             {
-              id: createId("card"),
-              title: "Revisar o escopo do trabalho",
-              description: "Mapear requisitos do PDF e transformar em tarefas iniciais.",
+              id: criarId("cartao"),
+              titulo: "Revisar o escopo do trabalho",
+              descricao: "Mapear requisitos do PDF e transformar em tarefas iniciais.",
             },
             {
-              id: createId("card"),
-              title: "Definir a estrutura dos arquivos",
-              description: "Separar estado, interface e persistencia desde o inicio.",
-            },
-          ],
-        },
-        {
-          id: createId("column"),
-          title: "Em andamento",
-          cards: [
-            {
-              id: createId("card"),
-              title: "Montar layout base do board",
-              description: "Criar a casca inicial da aplicacao para validar a direcao visual.",
+              id: criarId("cartao"),
+              titulo: "Definir a estrutura dos arquivos",
+              descricao: "Separar estado, interface e persistencia desde o inicio.",
             },
           ],
         },
         {
-          id: createId("column"),
-          title: "Concluido",
-          cards: [
+          id: criarId("coluna"),
+          titulo: "Em andamento",
+          cartoes: [
             {
-              id: createId("card"),
-              title: "Criar README e .gitignore",
-              description: "Registrar o escopo inicial e preparar o repositorio.",
+              id: criarId("cartao"),
+              titulo: "Montar layout base do quadro",
+              descricao: "Criar a casca inicial da aplicacao para validar a direcao visual.",
+            },
+          ],
+        },
+        {
+          id: criarId("coluna"),
+          titulo: "Concluido",
+          cartoes: [
+            {
+              id: criarId("cartao"),
+              titulo: "Criar README e .gitignore",
+              descricao: "Registrar o escopo inicial e preparar o repositorio.",
             },
           ],
         },
@@ -459,17 +468,17 @@
     };
   }
 
-  Kanban.state = {
-    addCard,
-    addColumn,
-    createInitialBoardState,
-    moveColumn,
-    moveCard,
-    removeCard,
-    removeColumn,
-    updateCardColor,
-    updateCardDescription,
-    updateCardTitle,
-    updateColumnTitle,
+  Kanban.estado = {
+    adicionarCartao,
+    adicionarColuna,
+    atualizarCorCartao,
+    atualizarDescricaoCartao,
+    atualizarTituloCartao,
+    atualizarTituloColuna,
+    criarQuadroInicial,
+    moverCartao,
+    moverColuna,
+    removerCartao,
+    removerColuna,
   };
 })(window);

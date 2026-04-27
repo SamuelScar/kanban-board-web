@@ -1,44 +1,44 @@
-/* Ajustes para telas menores, preservando a navegacao horizontal do board. */
+/* Ajustes para telas menores, preservando a navegacao horizontal do quadro. */
 @media (max-width: 720px) {
   /* Reduz respiros laterais para aproveitar melhor a largura disponivel. */
-  .app-shell {
+  .aplicacao {
     padding: 104px 20px 36px;
   }
 
   /* Compacta o cabecalho fixo sem perder legibilidade. */
-  .app-header {
+  .aplicacao__cabecalho {
     padding: 20px 20px 16px;
   }
 
   /* Cada coluna passa a ocupar boa parte da viewport em vez de largura fixa. */
-  .board {
+  .quadro {
     grid-auto-columns: minmax(260px, 88vw);
     gap: 16px;
   }
 
   /* O modal respeita margens menores em dispositivos estreitos. */
-  .text-dialog {
+  .dialogo-texto {
     width: min(100vw - 20px, 560px);
     border-radius: 24px;
   }
 
   /* Confirmacoes seguem a mesma regra, mas com largura base menor. */
-  .text-dialog--confirm {
+  .dialogo-texto--confirmacao {
     width: min(100vw - 20px, 480px);
   }
 
   /* Padding interno reduzido para nao desperdicar espaco util. */
-  .text-dialog__form {
+  .dialogo-texto__formulario {
     padding: 20px;
   }
 
   /* Em telas estreitas os botoes empilham para evitar compressao horizontal. */
-  .text-dialog__actions {
+  .dialogo-texto__acoes {
     flex-direction: column-reverse;
   }
 
   /* Cada botao ocupa a linha inteira para facilitar o toque. */
-  .text-dialog__button {
+  .dialogo-texto__botao {
     width: 100%;
   }
 }

@@ -1,12 +1,12 @@
 /* Estrutura externa que cria a area util abaixo do cabecalho fixo. */
-.app-shell {
+.aplicacao {
   width: max-content;
   min-width: 100%;
   padding: 120px 32px 48px;
 }
 
 /* Cabecalho preso ao topo para manter o nome do app sempre visivel. */
-.app-header {
+.aplicacao__cabecalho {
   position: fixed;
   top: 0;
   left: 0;
@@ -23,14 +23,14 @@
 }
 
 /* Titulo principal com escala fluida entre desktop e telas menores. */
-.app-header h1 {
+.aplicacao__cabecalho h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.05;
 }
 
 /* Container do conteudo principal; hoje recebe o quadro Kanban. */
-.app-main {
+.aplicacao__principal {
   display: grid;
   gap: 18px;
   width: max-content;

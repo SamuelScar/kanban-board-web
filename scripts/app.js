@@ -1,50 +1,54 @@
 /**
  * Orquestra a inicializacao da aplicacao, conectando estado, interface,
- * persistencia, modal e drag-and-drop. Este e o ponto em que os modulos
+ * persistencia, modal e arrastar-e-soltar. Este e o ponto em que os modulos
  * independentes passam a trabalhar juntos.
  *
  * @param {Window} global Objeto global do navegador.
  */
-(function startApp(global) {
+(function iniciarAplicacao(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
   const {
-    addCard,
-    addColumn,
-    createInitialBoardState,
-    moveColumn,
-    moveCard,
-    removeCard,
-    removeColumn,
-    updateCardColor,
-    updateCardDescription,
-    updateCardTitle,
-    updateColumnTitle,
-  } = Kanban.state;
+    adicionarCartao,
+    adicionarColuna,
+    atualizarCorCartao,
+    atualizarDescricaoCartao,
+    atualizarTituloCartao,
+    atualizarTituloColuna,
+    criarQuadroInicial,
+    moverCartao,
+    moverColuna,
+    removerCartao,
+    removerColuna,
+  } = Kanban.estado;
   const {
-    confirmCardRemoval,
-    confirmColumnRemoval,
-    editCardDescription,
+    confirmarRemocaoCartao,
+    confirmarRemocaoColuna,
+    editarDescricaoCartao,
   } = Kanban.modal;
-  const { bindBoardSortable, bindCardSortables, destroySortables } = Kanban.dragDrop;
-  const { loadBoardState, saveBoardState } = Kanban.storage;
-  const { renderBoard } = Kanban.ui;
+  const {
+    ativarArrasteCartoes,
+    ativarArrasteColunas,
+    desativarArraste,
+  } = Kanban.arraste;
+  const { carregarQuadro, salvarQuadro } = Kanban.armazenamento;
+  const { renderizarQuadro } = Kanban.interface;
 
   /**
    * Prepara a aplicacao depois que o DOM foi carregado.
    * A maior parte das funcoes internas existe aqui porque depende do estado
-   * vivo do board e da referencia do elemento raiz.
+   * vivo do quadro e da referencia do elemento raiz.
    *
    * @returns {void}
    */
-  function bootstrap() {
-    const boardRoot = document.querySelector("[data-board-root]");
+  function inicializar() {
+    const elementoQuadro = document.querySelector("[data-quadro]");
 
-    if (!boardRoot) {
+    if (!elementoQuadro) {
       throw new Error("O container principal do quadro nao foi encontrado.");
     }
 
-    let boardState = loadBoardState() || createInitialBoardState();
-    let preventCardOpenUntil = 0;
+    let estadoQuadro = carregarQuadro() || criarQuadroInicial();
+    let liberarAberturaCartaoEm = 0;
 
     /**
      * Agenda uma nova sincronizacao visual no proximo frame de animacao.
@@ -52,8 +56,8 @@
      *
      * @returns {void}
      */
-    function queueSyncBoard() {
-      global.requestAnimationFrame(syncBoard);
+    function agendarSincronizacaoQuadro() {
+      global.requestAnimationFrame(sincronizarQuadro);
     }
 
     /**
@@ -61,9 +65,9 @@
      *
      * @returns {void}
      */
-    function renderAndPersistBoard() {
-      renderBoard(boardRoot, boardState);
-      saveBoardState(boardState);
+    function renderizarEPersistirQuadro() {
+      renderizarQuadro(elementoQuadro, estadoQuadro);
+      salvarQuadro(estadoQuadro);
     }
 
     /**
@@ -71,8 +75,8 @@
      *
      * @returns {void}
      */
-    function handleColumnDragStart() {
-      boardRoot.classList.add("board--column-dragging");
+    function aoIniciarArrasteColuna() {
+      elementoQuadro.classList.add("quadro--arrastando-coluna");
     }
 
     /**
@@ -80,79 +84,83 @@
      *
      * @returns {void}
      */
-    function handleColumnDragEnd() {
-      boardRoot.classList.remove("board--column-dragging");
+    function aoEncerrarArrasteColuna() {
+      elementoQuadro.classList.remove("quadro--arrastando-coluna");
     }
 
     /**
      * Atualiza o estado apos a soltura de uma coluna em nova posicao.
      *
-     * @param {{ columnId: string, targetIndex: number }} movePayload Dados da movimentacao.
+     * @param {{ idColuna: string, indiceDestino: number }} dadosMovimentacao Dados da movimentacao.
      * @returns {void}
      */
-    function handleColumnDrop(movePayload) {
-      boardState = moveColumn(boardState, movePayload.columnId, movePayload.targetIndex);
-      queueSyncBoard();
+    function aoSoltarColuna(dadosMovimentacao) {
+      estadoQuadro = moverColuna(
+        estadoQuadro,
+        dadosMovimentacao.idColuna,
+        dadosMovimentacao.indiceDestino
+      );
+      agendarSincronizacaoQuadro();
     }
 
     /**
-     * Marca visualmente o arraste de cards para destacar os alvos de drop.
+     * Marca visualmente o arraste de cartoes para destacar os alvos de drop.
      *
      * @returns {void}
      */
-    function handleCardDragStart() {
-      boardRoot.classList.add("board--dragging");
+    function aoIniciarArrasteCartao() {
+      elementoQuadro.classList.add("quadro--arrastando");
     }
 
     /**
      * Finaliza o estado visual de arraste e bloqueia por alguns milissegundos
-     * a abertura do modal do card, evitando cliques acidentais apos o drop.
+     * a abertura do modal do cartao, evitando cliques acidentais apos o drop.
      *
      * @returns {void}
      */
-    function handleCardDragEnd() {
-      boardRoot.classList.remove("board--dragging");
-      preventCardOpenUntil = Date.now() + 250;
+    function aoEncerrarArrasteCartao() {
+      elementoQuadro.classList.remove("quadro--arrastando");
+      liberarAberturaCartaoEm = Date.now() + 250;
     }
 
     /**
-     * Atualiza o estado apos mover um card dentro do quadro.
+     * Atualiza o estado apos mover um cartao dentro do quadro.
      *
      * @param {{
-     *   sourceColumnId: string,
-     *   cardId: string,
-     *   targetColumnId: string,
-     *   targetIndex: number
-     * }} movePayload Dados da movimentacao.
+     *   idColunaOrigem: string,
+     *   idCartao: string,
+     *   idColunaDestino: string,
+     *   indiceDestino: number
+     * }} dadosMovimentacao Dados da movimentacao.
      * @returns {void}
      */
-    function handleCardDrop(movePayload) {
-      boardState = moveCard(
-        boardState,
-        movePayload.sourceColumnId,
-        movePayload.cardId,
-        movePayload.targetColumnId,
-        movePayload.targetIndex
+    function aoSoltarCartao(dadosMovimentacao) {
+      estadoQuadro = moverCartao(
+        estadoQuadro,
+        dadosMovimentacao.idColunaOrigem,
+        dadosMovimentacao.idCartao,
+        dadosMovimentacao.idColunaDestino,
+        dadosMovimentacao.indiceDestino
       );
-      queueSyncBoard();
+      agendarSincronizacaoQuadro();
     }
 
     /**
-     * Vincula ou recria todos os comportamentos de drag-and-drop apos cada render.
+     * Vincula ou recria todos os comportamentos de arrastar-e-soltar apos cada render.
      *
      * @returns {void}
      */
-    function bindBoardInteractions() {
-      bindBoardSortable(boardRoot, {
-        onColumnDragStart: handleColumnDragStart,
-        onColumnDragEnd: handleColumnDragEnd,
-        onColumnDrop: handleColumnDrop,
+    function ativarInteracoesQuadro() {
+      ativarArrasteColunas(elementoQuadro, {
+        aoEncerrarArrasteColuna,
+        aoIniciarArrasteColuna,
+        aoSoltarColuna,
       });
 
-      bindCardSortables(boardRoot, {
-        onDragStart: handleCardDragStart,
-        onDragEnd: handleCardDragEnd,
-        onCardDrop: handleCardDrop,
+      ativarArrasteCartoes(elementoQuadro, {
+        aoEncerrarArraste: aoEncerrarArrasteCartao,
+        aoIniciarArraste: aoIniciarArrasteCartao,
+        aoSoltarCartao,
       });
     }
 
@@ -162,39 +170,39 @@
      *
      * @returns {void}
      */
-    function syncBoard() {
-      renderAndPersistBoard();
-      bindBoardInteractions();
+    function sincronizarQuadro() {
+      renderizarEPersistirQuadro();
+      ativarInteracoesQuadro();
     }
 
     /**
      * Busca uma coluna pelo identificador.
      *
-     * @param {string} columnId Coluna procurada.
+     * @param {string} idColuna Coluna procurada.
      * @returns {object | undefined} Coluna encontrada.
      */
-    function findColumnById(columnId) {
-      return boardState.columns.find(function matchColumn(column) {
-        return column.id === columnId;
+    function encontrarColunaPorId(idColuna) {
+      return estadoQuadro.colunas.find(function localizarColuna(coluna) {
+        return coluna.id === idColuna;
       });
     }
 
     /**
-     * Localiza um card a partir do par coluna + card.
+     * Localiza um cartao a partir do par coluna + cartao.
      *
-     * @param {string} columnId Coluna onde a busca deve acontecer.
-     * @param {string} cardId Card procurado.
-     * @returns {object | null} Card encontrado ou `null`.
+     * @param {string} idColuna Coluna onde a busca deve acontecer.
+     * @param {string} idCartao Cartao procurado.
+     * @returns {object | null} Cartao encontrado ou `null`.
      */
-    function findCardByIds(columnId, cardId) {
-      const column = findColumnById(columnId);
+    function encontrarCartaoPorIds(idColuna, idCartao) {
+      const coluna = encontrarColunaPorId(idColuna);
 
-      if (!column) {
+      if (!coluna) {
         return null;
       }
 
-      return column.cards.find(function matchCard(card) {
-        return card.id === cardId;
+      return coluna.cartoes.find(function localizarCartao(cartao) {
+        return cartao.id === idCartao;
       });
     }
 
@@ -202,356 +210,362 @@
      * Faz `closest` com protecao de tipo para evitar erros quando o alvo do
      * evento nao e um elemento DOM.
      *
-     * @param {EventTarget | null} target Alvo bruto do evento.
-     * @param {string} selector Seletor CSS usado na busca.
+     * @param {EventTarget | null} alvo Alvo bruto do evento.
+     * @param {string} seletor Seletor CSS usado na busca.
      * @returns {HTMLElement | null} Elemento encontrado ou `null`.
      */
-    function getClosestElement(target, selector) {
-      if (!(target instanceof Element)) {
+    function obterElementoMaisProximo(alvo, seletor) {
+      if (!(alvo instanceof Element)) {
         return null;
       }
 
-      const element = target.closest(selector);
-      return element instanceof HTMLElement ? element : null;
+      const elemento = alvo.closest(seletor);
+      return elemento instanceof HTMLElement ? elemento : null;
     }
 
     /**
-     * Variante de `getClosestElement` que garante retorno do tipo botao.
+     * Variante de `obterElementoMaisProximo` que garante retorno do tipo botao.
      *
-     * @param {EventTarget | null} target Alvo bruto do evento.
-     * @param {string} selector Seletor CSS usado na busca.
+     * @param {EventTarget | null} alvo Alvo bruto do evento.
+     * @param {string} seletor Seletor CSS usado na busca.
      * @returns {HTMLButtonElement | null} Botao encontrado ou `null`.
      */
-    function getClosestButton(target, selector) {
-      const element = getClosestElement(target, selector);
-      return element instanceof HTMLButtonElement ? element : null;
+    function obterBotaoMaisProximo(alvo, seletor) {
+      const elemento = obterElementoMaisProximo(alvo, seletor);
+      return elemento instanceof HTMLButtonElement ? elemento : null;
     }
 
     /**
      * Sobe no DOM ate encontrar a coluna mais proxima do alvo informado.
      *
-     * @param {EventTarget | null} target Alvo do evento ou elemento de referencia.
+     * @param {EventTarget | null} alvo Alvo do evento ou elemento de referencia.
      * @returns {HTMLElement | null} Elemento da coluna.
      */
-    function getColumnElement(target) {
-      return getClosestElement(target, "[data-column-id]");
+    function obterElementoColuna(alvo) {
+      return obterElementoMaisProximo(alvo, "[data-coluna-id]");
     }
 
     /**
-     * Reune em um unico objeto o card clicado, o elemento visual dele e
+     * Reune em um unico objeto o cartao clicado, o elemento visual dele e
      * a coluna em que ele esta.
      *
-     * @param {EventTarget | null} target Alvo do evento.
-     * @returns {{ card: object, cardElement: HTMLElement, columnElement: HTMLElement } | null} Contexto do card.
+     * @param {EventTarget | null} alvo Alvo do evento.
+     * @returns {{ cartao: object, elementoCartao: HTMLElement, elementoColuna: HTMLElement } | null} Contexto do cartao.
      */
-    function getCardContext(target) {
-      const cardElement = getClosestElement(target, ".card");
+    function obterContextoCartao(alvo) {
+      const elementoCartao = obterElementoMaisProximo(alvo, ".cartao");
 
-      if (!cardElement) {
+      if (!elementoCartao) {
         return null;
       }
 
-      const columnElement = getColumnElement(cardElement);
+      const elementoColuna = obterElementoColuna(elementoCartao);
 
-      if (!columnElement) {
+      if (!elementoColuna) {
         return null;
       }
 
-      const card = findCardByIds(columnElement.dataset.columnId, cardElement.dataset.cardId);
+      const cartao = encontrarCartaoPorIds(
+        elementoColuna.dataset.colunaId,
+        elementoCartao.dataset.cartaoId
+      );
 
-      return card
+      return cartao
         ? {
-            card,
-            cardElement,
-            columnElement,
+            cartao,
+            elementoCartao,
+            elementoColuna,
           }
         : null;
     }
 
     /**
-     * Atualiza a cor de um card e fecha o seletor de cores em seguida.
+     * Atualiza a cor de um cartao e fecha o seletor de cores em seguida.
      *
-     * @param {HTMLButtonElement} buttonElement Botao clicado na paleta.
+     * @param {HTMLButtonElement} elementoBotao Botao clicado na paleta.
      * @returns {void}
      */
-    function handleSetCardColorClick(buttonElement) {
-      const columnElement = getColumnElement(buttonElement);
+    function aoClicarAlterarCorCartao(elementoBotao) {
+      const elementoColuna = obterElementoColuna(elementoBotao);
 
-      if (!columnElement) {
+      if (!elementoColuna) {
         return;
       }
 
-      boardState = updateCardColor(
-        boardState,
-        columnElement.dataset.columnId,
-        buttonElement.dataset.cardId,
-        buttonElement.dataset.colorValue || ""
+      estadoQuadro = atualizarCorCartao(
+        estadoQuadro,
+        elementoColuna.dataset.colunaId,
+        elementoBotao.dataset.cartaoId,
+        elementoBotao.dataset.valorCor || ""
       );
 
-      const colorPickerElement = getClosestElement(buttonElement, ".card__color-picker");
+      const elementoSeletorCor = obterElementoMaisProximo(
+        elementoBotao,
+        ".cartao__seletor-cor"
+      );
 
-      if (colorPickerElement instanceof HTMLDetailsElement) {
-        colorPickerElement.removeAttribute("open");
+      if (elementoSeletorCor instanceof HTMLDetailsElement) {
+        elementoSeletorCor.removeAttribute("open");
       }
 
-      syncBoard();
+      sincronizarQuadro();
     }
 
     /**
-     * Pede confirmacao e remove um card quando a resposta e positiva.
+     * Pede confirmacao e remove um cartao quando a resposta e positiva.
      *
-     * @param {HTMLButtonElement} buttonElement Botao que disparou a exclusao.
+     * @param {HTMLButtonElement} elementoBotao Botao que disparou a exclusao.
      * @returns {Promise<void>}
      */
-    async function handleRemoveCardClick(buttonElement) {
-      const columnElement = getColumnElement(buttonElement);
+    async function aoClicarRemoverCartao(elementoBotao) {
+      const elementoColuna = obterElementoColuna(elementoBotao);
 
-      if (!columnElement) {
+      if (!elementoColuna) {
         return;
       }
 
-      const shouldRemoveCard = await confirmCardRemoval(buttonElement);
+      const deveRemoverCartao = await confirmarRemocaoCartao(elementoBotao);
 
-      if (!shouldRemoveCard) {
+      if (!deveRemoverCartao) {
         return;
       }
 
-      boardState = removeCard(
-        boardState,
-        columnElement.dataset.columnId,
-        buttonElement.dataset.cardId
+      estadoQuadro = removerCartao(
+        estadoQuadro,
+        elementoColuna.dataset.colunaId,
+        elementoBotao.dataset.cartaoId
       );
-      syncBoard();
+      sincronizarQuadro();
     }
 
     /**
      * Pede confirmacao e remove uma coluna inteira quando a resposta e positiva.
      *
-     * @param {HTMLButtonElement} buttonElement Botao que disparou a exclusao.
+     * @param {HTMLButtonElement} elementoBotao Botao que disparou a exclusao.
      * @returns {Promise<void>}
      */
-    async function handleRemoveColumnClick(buttonElement) {
-      const column = findColumnById(buttonElement.dataset.columnId);
+    async function aoClicarRemoverColuna(elementoBotao) {
+      const coluna = encontrarColunaPorId(elementoBotao.dataset.colunaId);
 
-      if (!column) {
+      if (!coluna) {
         return;
       }
 
-      const shouldRemoveColumn = await confirmColumnRemoval(
-        column.title,
-        column.cards.length,
-        buttonElement
+      const deveRemoverColuna = await confirmarRemocaoColuna(
+        coluna.titulo,
+        coluna.cartoes.length,
+        elementoBotao
       );
 
-      if (!shouldRemoveColumn) {
+      if (!deveRemoverColuna) {
         return;
       }
 
-      boardState = removeColumn(boardState, column.id);
-      syncBoard();
+      estadoQuadro = removerColuna(estadoQuadro, coluna.id);
+      sincronizarQuadro();
     }
 
     /**
-     * Cria um novo card na coluna indicada pelo botao clicado.
+     * Cria um novo cartao na coluna indicada pelo botao clicado.
      *
-     * @param {HTMLButtonElement} buttonElement Botao de adicao de card.
+     * @param {HTMLButtonElement} elementoBotao Botao de adicao de cartao.
      * @returns {void}
      */
-    function handleAddCardClick(buttonElement) {
-      boardState = addCard(boardState, buttonElement.dataset.columnId);
-      syncBoard();
+    function aoClicarAdicionarCartao(elementoBotao) {
+      estadoQuadro = adicionarCartao(estadoQuadro, elementoBotao.dataset.colunaId);
+      sincronizarQuadro();
     }
 
     /**
-     * Cria uma nova coluna ao final do board.
+     * Cria uma nova coluna ao final do quadro.
      *
      * @returns {void}
      */
-    function handleAddColumnClick() {
-      boardState = addColumn(boardState);
-      syncBoard();
+    function aoClicarAdicionarColuna() {
+      estadoQuadro = adicionarColuna(estadoQuadro);
+      sincronizarQuadro();
     }
 
     /**
-     * Centraliza o roteamento das acoes disparadas por botoes com `data-action`.
+     * Centraliza o roteamento das acoes disparadas por botoes com `data-acao`.
      *
-     * @param {HTMLButtonElement} buttonElement Botao acionado pelo usuario.
+     * @param {HTMLButtonElement} elementoBotao Botao acionado pelo usuario.
      * @returns {Promise<void>}
      */
-    async function handleActionClick(buttonElement) {
-      switch (buttonElement.dataset.action) {
-        case "set-card-color":
-          handleSetCardColorClick(buttonElement);
+    async function aoClicarAcao(elementoBotao) {
+      switch (elementoBotao.dataset.acao) {
+        case "alterar-cor-cartao":
+          aoClicarAlterarCorCartao(elementoBotao);
           return;
-        case "remove-card":
-          await handleRemoveCardClick(buttonElement);
+        case "remover-cartao":
+          await aoClicarRemoverCartao(elementoBotao);
           return;
-        case "remove-column":
-          await handleRemoveColumnClick(buttonElement);
+        case "remover-coluna":
+          await aoClicarRemoverColuna(elementoBotao);
           return;
-        case "add-card":
-          handleAddCardClick(buttonElement);
+        case "adicionar-cartao":
+          aoClicarAdicionarCartao(elementoBotao);
           return;
-        case "add-column":
-          handleAddColumnClick();
+        case "adicionar-coluna":
+          aoClicarAdicionarColuna();
           return;
       }
     }
 
     /**
-     * Abre o modal de descricao do card clicado, respeitando a janela
+     * Abre o modal de descricao do cartao clicado, respeitando a janela
      * de bloqueio logo apos um drag-and-drop.
      *
-     * @param {EventTarget | null} target Alvo original do clique.
+     * @param {EventTarget | null} alvo Alvo original do clique.
      * @returns {Promise<void>}
      */
-    async function handleCardOpen(target) {
-      if (Date.now() < preventCardOpenUntil) {
+    async function aoAbrirCartao(alvo) {
+      if (Date.now() < liberarAberturaCartaoEm) {
         return;
       }
 
-      const cardContext = getCardContext(target);
+      const contextoCartao = obterContextoCartao(alvo);
 
-      if (!cardContext) {
+      if (!contextoCartao) {
         return;
       }
 
-      const nextDescription = await editCardDescription(
-        cardContext.card.title,
-        cardContext.card.description || "",
-        cardContext.cardElement
+      const proximaDescricao = await editarDescricaoCartao(
+        contextoCartao.cartao.titulo,
+        contextoCartao.cartao.descricao || "",
+        contextoCartao.elementoCartao
       );
 
-      if (nextDescription === null) {
+      if (proximaDescricao === null) {
         return;
       }
 
-      boardState = updateCardDescription(
-        boardState,
-        cardContext.columnElement.dataset.columnId,
-        cardContext.card.id,
-        nextDescription
+      estadoQuadro = atualizarDescricaoCartao(
+        estadoQuadro,
+        contextoCartao.elementoColuna.dataset.colunaId,
+        contextoCartao.cartao.id,
+        proximaDescricao
       );
-      syncBoard();
+      sincronizarQuadro();
     }
 
     /**
-     * Trata todos os cliques do board usando delegacao de eventos.
+     * Trata todos os cliques do quadro usando delegacao de eventos.
      * Primeiro tenta identificar uma acao explicita; se nao houver,
      * o clique pode significar abertura do editor de descricao.
      *
-     * @param {MouseEvent} event Evento de clique no quadro.
+     * @param {MouseEvent} evento Evento de clique no quadro.
      * @returns {Promise<void>}
      */
-    async function handleBoardClick(event) {
-      const target = event.target;
-      const actionButton = getClosestButton(target, "[data-action]");
+    async function aoClicarQuadro(evento) {
+      const alvo = evento.target;
+      const elementoBotaoAcao = obterBotaoMaisProximo(alvo, "[data-acao]");
 
-      if (actionButton) {
-        await handleActionClick(actionButton);
+      if (elementoBotaoAcao) {
+        await aoClicarAcao(elementoBotaoAcao);
         return;
       }
 
-      if (getClosestElement(target, ".card__color-picker")) {
+      if (obterElementoMaisProximo(alvo, ".cartao__seletor-cor")) {
         return;
       }
 
       if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLSelectElement
+        alvo instanceof HTMLInputElement ||
+        alvo instanceof HTMLSelectElement
       ) {
         return;
       }
 
-      await handleCardOpen(target);
+      await aoAbrirCartao(alvo);
     }
 
     /**
      * Atualiza o titulo de uma coluna a partir do input editavel.
      *
-     * @param {HTMLInputElement} inputElement Campo de titulo da coluna.
+     * @param {HTMLInputElement} elementoEntrada Campo de titulo da coluna.
      * @returns {void}
      */
-    function handleColumnTitleChange(inputElement) {
-      boardState = updateColumnTitle(
-        boardState,
-        inputElement.dataset.columnId,
-        inputElement.value
+    function aoAlterarTituloColuna(elementoEntrada) {
+      estadoQuadro = atualizarTituloColuna(
+        estadoQuadro,
+        elementoEntrada.dataset.colunaId,
+        elementoEntrada.value
       );
-      syncBoard();
+      sincronizarQuadro();
     }
 
     /**
-     * Atualiza o titulo de um card a partir do input editavel.
+     * Atualiza o titulo de um cartao a partir do input editavel.
      *
-     * @param {HTMLInputElement} inputElement Campo de titulo do card.
+     * @param {HTMLInputElement} elementoEntrada Campo de titulo do cartao.
      * @returns {void}
      */
-    function handleCardTitleChange(inputElement) {
-      const columnElement = getColumnElement(inputElement);
+    function aoAlterarTituloCartao(elementoEntrada) {
+      const elementoColuna = obterElementoColuna(elementoEntrada);
 
-      if (!columnElement) {
+      if (!elementoColuna) {
         return;
       }
 
-      boardState = updateCardTitle(
-        boardState,
-        columnElement.dataset.columnId,
-        inputElement.dataset.cardId,
-        inputElement.value
+      estadoQuadro = atualizarTituloCartao(
+        estadoQuadro,
+        elementoColuna.dataset.colunaId,
+        elementoEntrada.dataset.cartaoId,
+        elementoEntrada.value
       );
-      syncBoard();
+      sincronizarQuadro();
     }
 
     /**
-     * Trata eventos `change` disparados pelos inputs editaveis do board.
+     * Trata eventos `change` disparados pelos inputs editaveis do quadro.
      *
-     * @param {Event} event Evento de alteracao.
+     * @param {Event} evento Evento de alteracao.
      * @returns {void}
      */
-    function handleBoardChange(event) {
-      const target = event.target;
+    function aoAlterarQuadro(evento) {
+      const alvo = evento.target;
 
-      if (!(target instanceof HTMLInputElement)) {
+      if (!(alvo instanceof HTMLInputElement)) {
         return;
       }
 
-      if (target.dataset.columnTitleInput === "true") {
-        handleColumnTitleChange(target);
+      if (alvo.dataset.campoTituloColuna === "true") {
+        aoAlterarTituloColuna(alvo);
         return;
       }
 
-      if (target.dataset.cardTitleInput === "true") {
-        handleCardTitleChange(target);
+      if (alvo.dataset.campoTituloCartao === "true") {
+        aoAlterarTituloCartao(alvo);
       }
     }
 
     /**
      * Faz o Enter finalizar a edicao dos titulos sem inserir quebra de linha.
      *
-     * @param {KeyboardEvent} event Evento de teclado disparado no board.
+     * @param {KeyboardEvent} evento Evento de teclado disparado no quadro.
      * @returns {void}
      */
-    function handleBoardKeyDown(event) {
-      const target = event.target;
+    function aoPressionarTeclaQuadro(evento) {
+      const alvo = evento.target;
 
       if (
-        target instanceof HTMLInputElement &&
-        event.key === "Enter" &&
-        (target.dataset.columnTitleInput === "true" ||
-          target.dataset.cardTitleInput === "true")
+        alvo instanceof HTMLInputElement &&
+        evento.key === "Enter" &&
+        (alvo.dataset.campoTituloColuna === "true" ||
+          alvo.dataset.campoTituloCartao === "true")
       ) {
-        event.preventDefault();
-        target.blur();
+        evento.preventDefault();
+        alvo.blur();
       }
     }
 
-    boardRoot.addEventListener("click", handleBoardClick);
-    boardRoot.addEventListener("change", handleBoardChange);
-    boardRoot.addEventListener("keydown", handleBoardKeyDown);
-    global.addEventListener("beforeunload", destroySortables);
-    syncBoard();
+    elementoQuadro.addEventListener("click", aoClicarQuadro);
+    elementoQuadro.addEventListener("change", aoAlterarQuadro);
+    elementoQuadro.addEventListener("keydown", aoPressionarTeclaQuadro);
+    global.addEventListener("beforeunload", desativarArraste);
+    sincronizarQuadro();
   }
 
-  document.addEventListener("DOMContentLoaded", bootstrap);
+  document.addEventListener("DOMContentLoaded", inicializar);
 })(window);

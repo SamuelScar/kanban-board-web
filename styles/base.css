@@ -1,15 +1,15 @@
 /* Tokens globais de cor, superficie e sombra compartilhados no projeto. */
 :root {
-  --bg-start: #f1ede1;
-  --bg-end: #d7e5ec;
-  --surface: rgba(255, 250, 243, 0.92);
-  --surface-strong: #fffdf8;
-  --border: rgba(80, 63, 46, 0.12);
-  --text-main: #2f2a25;
-  --text-muted: #65594d;
-  --accent: #b96f3b;
-  --shadow-soft: 0 14px 30px rgba(60, 46, 30, 0.08);
-  --shadow-card: 0 10px 18px rgba(53, 42, 29, 0.08);
+  --fundo-inicio: #f1ede1;
+  --fundo-fim: #d7e5ec;
+  --superficie: rgba(255, 250, 243, 0.92);
+  --superficie-forte: #fffdf8;
+  --borda: rgba(80, 63, 46, 0.12);
+  --texto-principal: #2f2a25;
+  --texto-secundario: #65594d;
+  --destaque: #b96f3b;
+  --sombra-suave: 0 14px 30px rgba(60, 46, 30, 0.08);
+  --sombra-cartao: 0 10px 18px rgba(53, 42, 29, 0.08);
 }
 
 /* Reset estrutural para facilitar o controle de espacamento e medidas. */
@@ -26,7 +26,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-  color: var(--text-main);
+  color: var(--texto-principal);
   overflow-x: auto;
   background: transparent;
 }
@@ -39,7 +39,7 @@ body::before {
   z-index: -1;
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.72), transparent 34%),
-    linear-gradient(135deg, var(--bg-start), var(--bg-end));
+    linear-gradient(135deg, var(--fundo-inicio), var(--fundo-fim));
 }
 
 /* Faz controles nativos herdarem a tipografia principal do projeto. */
@@ -50,7 +50,7 @@ textarea {
 }
 
 /* Classe utilitaria para texto acessivel somente a leitores de tela. */
-.sr-only {
+.somente-leitor-tela {
   position: absolute;
   width: 1px;
   height: 1px;

@@ -1,94 +1,93 @@
 /**
  * Encapsula a integracao com o SortableJS.
- * Este modulo cuida da criacao, destruicao e traducao dos eventos de arraste
+ * Este modulo cuida da criacao, limpeza e traducao dos eventos de arraste
  * para payloads simples consumidos pela aplicacao.
  *
  * @param {Window} global Objeto global do navegador.
  */
-(function attachDragAndDrop(global) {
+(function anexarArraste(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
-  const Sortable = global.Sortable;
-  let cardSortables = [];
-  let boardSortable = null;
+  const Ordenavel = global.Sortable;
+  let arrastesCartoes = [];
+  let arrasteColunas = null;
 
   /**
-   * Remove a instancia responsavel por ordenar colunas.
+   * Remove a instancia atual responsavel por reordenar colunas.
    *
    * @returns {void}
    */
-  function destroyBoardSortable() {
-    if (!boardSortable) {
+  function limparArrasteColunas() {
+    if (!arrasteColunas) {
       return;
     }
 
-    boardSortable.destroy();
-    boardSortable = null;
+    arrasteColunas.destroy();
+    arrasteColunas = null;
   }
 
   /**
-   * Remove todas as instancias responsaveis pelo arraste dos cards.
+   * Remove todas as instancias atuais responsaveis pelo arraste dos cartoes.
    *
    * @returns {void}
    */
-  function destroyCardSortables() {
-    cardSortables.forEach(function destroySortable(sortableInstance) {
-      sortableInstance.destroy();
+  function limparArrasteCartoes() {
+    arrastesCartoes.forEach(function limparInstanciaArraste(instanciaArraste) {
+      instanciaArraste.destroy();
     });
-    cardSortables = [];
+    arrastesCartoes = [];
   }
 
   /**
-   * Limpa todas as instancias do Sortable antes de uma nova vinculacao
-   * ou antes de sair da pagina.
+   * Desativa qualquer recurso de arraste que esteja ligado no momento.
    *
    * @returns {void}
    */
-  function destroySortables() {
-    destroyCardSortables();
-    destroyBoardSortable();
+  function desativarArraste() {
+    limparArrasteCartoes();
+    limparArrasteColunas();
   }
 
   /**
    * Traduz o evento do SortableJS para um payload independente da biblioteca.
    *
-   * @param {Sortable.SortableEvent} event Evento bruto do SortableJS.
+   * @param {Sortable.SortableEvent} evento Evento bruto do SortableJS.
    * @returns {{
-   *   sourceColumnId: string,
-   *   targetColumnId: string,
-   *   cardId: string,
-   *   sourceIndex: number,
-   *   targetIndex: number
-   * } | null} Dados necessarios para mover um card no estado.
+   *   idColunaOrigem: string,
+   *   idColunaDestino: string,
+   *   idCartao: string,
+   *   indiceOrigem: number,
+   *   indiceDestino: number
+   * } | null} Dados necessarios para mover um cartao no estado.
    */
-  function createMovePayload(event) {
+  function criarDadosMovimentacaoCartao(evento) {
     if (
-      !(event.from instanceof HTMLElement) ||
-      !(event.to instanceof HTMLElement) ||
-      !(event.item instanceof HTMLElement)
+      !(evento.from instanceof HTMLElement) ||
+      !(evento.to instanceof HTMLElement) ||
+      !(evento.item instanceof HTMLElement)
     ) {
       return null;
     }
 
-    const sourceColumnId = event.from.dataset.columnId;
-    const targetColumnId = event.to.dataset.columnId;
-    const cardId = event.item.dataset.cardId;
+    const idColunaOrigem = evento.from.dataset.colunaId;
+    const idColunaDestino = evento.to.dataset.colunaId;
+    const idCartao = evento.item.dataset.cartaoId;
 
     if (
-      !sourceColumnId ||
-      !targetColumnId ||
-      !cardId ||
-      typeof event.oldIndex !== "number" ||
-      typeof event.newIndex !== "number"
+      !idColunaOrigem ||
+      !idColunaDestino ||
+      !idCartao ||
+      typeof evento.oldIndex !== "number" ||
+      typeof evento.newIndex !== "number"
     ) {
       return null;
     }
 
     return {
-      sourceColumnId,
-      targetColumnId,
-      cardId,
-      sourceIndex: event.oldIndex,
-      targetIndex: event.newIndex,
+      idColunaOrigem,
+      idColunaDestino,
+      idCartao,
+      indiceOrigem: evento.oldIndex,
+      indiceDestino: evento.newIndex,
     };
   }
 
@@ -97,159 +96,156 @@
    * O codigo considera tanto os indices padrao quanto os `draggableIndex`
    * usados pela biblioteca em alguns cenarios.
    *
-   * @param {Sortable.SortableEvent} event Evento bruto do SortableJS.
-   * @returns {{ columnId: string, sourceIndex: number, targetIndex: number } | null} Dados da movimentacao.
+   * @param {Sortable.SortableEvent} evento Evento bruto do SortableJS.
+   * @returns {{ idColuna: string, indiceOrigem: number, indiceDestino: number } | null} Dados da movimentacao.
    */
-  function createColumnMovePayload(event) {
-    if (!(event.item instanceof HTMLElement)) {
+  function criarDadosMovimentacaoColuna(evento) {
+    if (!(evento.item instanceof HTMLElement)) {
       return null;
     }
 
-    const columnId = event.item.dataset.columnId;
-    const sourceIndex =
-      typeof event.oldDraggableIndex === "number"
-        ? event.oldDraggableIndex
-        : event.oldIndex;
-    const targetIndex =
-      typeof event.newDraggableIndex === "number"
-        ? event.newDraggableIndex
-        : event.newIndex;
+    const idColuna = evento.item.dataset.colunaId;
+    const indiceOrigem =
+      typeof evento.oldDraggableIndex === "number"
+        ? evento.oldDraggableIndex
+        : evento.oldIndex;
+    const indiceDestino =
+      typeof evento.newDraggableIndex === "number"
+        ? evento.newDraggableIndex
+        : evento.newIndex;
 
     if (
-      !columnId ||
-      typeof sourceIndex !== "number" ||
-      typeof targetIndex !== "number"
+      !idColuna ||
+      typeof indiceOrigem !== "number" ||
+      typeof indiceDestino !== "number"
     ) {
       return null;
     }
 
     return {
-      columnId,
-      sourceIndex,
-      targetIndex,
+      idColuna,
+      indiceOrigem,
+      indiceDestino,
     };
   }
 
   /**
    * Ativa o arraste horizontal das colunas do quadro.
    *
-   * @param {HTMLElement} rootElement Elemento raiz que contem as colunas.
-   * @param {object} handlers Callbacks opcionais para o ciclo de arraste.
+   * @param {HTMLElement} elementoQuadro Elemento que contem as colunas.
+   * @param {object} callbacks Callbacks opcionais para o ciclo de arraste.
    * @returns {void}
    */
-  function bindBoardSortable(rootElement, handlers) {
-    destroyBoardSortable();
+  function ativarArrasteColunas(elementoQuadro, callbacks) {
+    limparArrasteColunas();
 
-    if (!Sortable) {
+    if (!Ordenavel) {
       return;
     }
 
-    const callbacks = handlers || {};
+    const acoes = callbacks || {};
 
-    boardSortable = Sortable.create(rootElement, {
+    arrasteColunas = Ordenavel.create(elementoQuadro, {
       animation: 180,
       direction: "horizontal",
-      draggable: ".column",
-      handle: ".column__header",
+      draggable: ".coluna",
+      handle: ".coluna__cabecalho",
       filter: "input, button, select, summary",
       preventOnFilter: false,
-      ghostClass: "column--ghost",
-      chosenClass: "column--chosen",
-      dragClass: "column--dragging",
-      onStart: function handleStart() {
-        if (typeof callbacks.onColumnDragStart === "function") {
-          callbacks.onColumnDragStart();
+      ghostClass: "coluna--fantasma",
+      chosenClass: "coluna--selecionada",
+      dragClass: "coluna--arrastando",
+      onStart: function aoIniciar() {
+        if (typeof acoes.aoIniciarArrasteColuna === "function") {
+          acoes.aoIniciarArrasteColuna();
         }
       },
-      onEnd: function handleEnd(event) {
-        if (typeof callbacks.onColumnDragEnd === "function") {
-          callbacks.onColumnDragEnd();
+      onEnd: function aoEncerrar(evento) {
+        if (typeof acoes.aoEncerrarArrasteColuna === "function") {
+          acoes.aoEncerrarArrasteColuna();
         }
 
-        const movePayload = createColumnMovePayload(event);
+        const dadosMovimentacao = criarDadosMovimentacaoColuna(evento);
 
-        if (!movePayload) {
+        if (!dadosMovimentacao) {
           return;
         }
 
         if (
-          movePayload.sourceIndex !== movePayload.targetIndex &&
-          typeof callbacks.onColumnDrop === "function"
+          dadosMovimentacao.indiceOrigem !== dadosMovimentacao.indiceDestino &&
+          typeof acoes.aoSoltarColuna === "function"
         ) {
-          callbacks.onColumnDrop(movePayload);
+          acoes.aoSoltarColuna(dadosMovimentacao);
         }
       },
     });
   }
 
   /**
-   * Ativa o arraste de cards em todas as colunas visiveis no momento.
+   * Ativa o arraste de cartoes em todas as colunas visiveis no momento.
    *
-   * @param {HTMLElement} rootElement Elemento raiz que contem as listas de cards.
-   * @param {object} handlers Callbacks opcionais para o ciclo de arraste.
+   * @param {HTMLElement} elementoQuadro Elemento que contem as listas de cartoes.
+   * @param {object} callbacks Callbacks opcionais para o ciclo de arraste.
    * @returns {void}
    */
-  function bindCardSortables(rootElement, handlers) {
-    destroyCardSortables();
+  function ativarArrasteCartoes(elementoQuadro, callbacks) {
+    limparArrasteCartoes();
 
-    if (!Sortable) {
+    if (!Ordenavel) {
       console.warn(
-        "SortableJS nao foi carregado. O arraste de cards ficara indisponivel."
+        "SortableJS nao foi carregado. O arraste de cartoes ficara indisponivel."
       );
       return;
     }
 
-    const callbacks = handlers || {};
-    const listElements = rootElement.querySelectorAll(".column__cards");
+    const acoes = callbacks || {};
+    const listasCartoes = elementoQuadro.querySelectorAll(".coluna__cartoes");
 
-    cardSortables = Array.from(listElements).map(function createSortable(listElement) {
-      return Sortable.create(listElement, {
-        group: "kanban-cards",
+    arrastesCartoes = Array.from(listasCartoes).map(function criarArraste(listaCartoes) {
+      return Ordenavel.create(listaCartoes, {
+        group: "kanban-cartoes",
         animation: 180,
         delay: 180,
         delayOnTouchOnly: false,
         touchStartThreshold: 4,
-        draggable: ".card",
+        draggable: ".cartao",
         filter: "input, button, select, summary",
         preventOnFilter: false,
-        ghostClass: "card--ghost",
-        chosenClass: "card--chosen",
-        dragClass: "card--dragging",
+        ghostClass: "cartao--fantasma",
+        chosenClass: "cartao--selecionado",
+        dragClass: "cartao--arrastando",
         emptyInsertThreshold: 48,
-        onStart: function handleStart() {
-          if (typeof callbacks.onDragStart === "function") {
-            callbacks.onDragStart();
+        onStart: function aoIniciar() {
+          if (typeof acoes.aoIniciarArraste === "function") {
+            acoes.aoIniciarArraste();
           }
         },
-        onEnd: function handleEnd(event) {
-          if (typeof callbacks.onDragEnd === "function") {
-            callbacks.onDragEnd();
+        onEnd: function aoEncerrar(evento) {
+          if (typeof acoes.aoEncerrarArraste === "function") {
+            acoes.aoEncerrarArraste();
           }
 
-          const movePayload = createMovePayload(event);
+          const dadosMovimentacao = criarDadosMovimentacaoCartao(evento);
 
-          if (!movePayload) {
+          if (!dadosMovimentacao) {
             return;
           }
 
-          const didPositionChange =
-            movePayload.sourceColumnId !== movePayload.targetColumnId ||
-            movePayload.sourceIndex !== movePayload.targetIndex;
+          const houveMudanca =
+            dadosMovimentacao.idColunaOrigem !== dadosMovimentacao.idColunaDestino ||
+            dadosMovimentacao.indiceOrigem !== dadosMovimentacao.indiceDestino;
 
-          if (
-            didPositionChange &&
-            typeof callbacks.onCardDrop === "function"
-          ) {
-            callbacks.onCardDrop(movePayload);
+          if (houveMudanca && typeof acoes.aoSoltarCartao === "function") {
+            acoes.aoSoltarCartao(dadosMovimentacao);
           }
         },
       });
     });
   }
 
-  Kanban.dragDrop = {
-    bindBoardSortable,
-    bindCardSortables,
-    destroySortables,
+  Kanban.arraste = {
+    ativarArrasteCartoes,
+    ativarArrasteColunas,
+    desativarArraste,
   };
 })(window);

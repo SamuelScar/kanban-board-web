@@ -1,47 +1,47 @@
 /**
- * Converte o estado do board em elementos DOM.
+ * Converte o estado do quadro em elementos DOM.
  * Este modulo nao conhece eventos da aplicacao; ele apenas monta a interface
  * com os atributos e classes esperados pelos demais modulos.
  *
  * @param {Window} global Objeto global do navegador.
  */
-(function attachUi(global) {
+(function anexarInterface(global) {
   const Kanban = (global.Kanban = global.Kanban || {});
   const {
-    cardColorOptions,
-    formatCardCount,
-    normalizeHexColor,
-    tintHexColor,
-  } = Kanban.utils;
+    opcoesCorCartao,
+    formatarQuantidadeCartoes,
+    normalizarCorHexadecimal,
+    clarearCorHexadecimal,
+  } = Kanban.utilitarios;
 
   /**
    * Cria um elemento opcionalmente ja associado a uma classe CSS.
    *
-   * @param {string} tagName Tag HTML a ser criada.
-   * @param {string} [className] Classe CSS inicial.
+   * @param {string} nomeTag Tag HTML a ser criada.
+   * @param {string} [nomeClasse] Classe CSS inicial.
    * @returns {HTMLElement} Elemento recem-criado.
    */
-  function createElement(tagName, className) {
-    const element = document.createElement(tagName);
+  function criarElemento(nomeTag, nomeClasse) {
+    const elemento = document.createElement(nomeTag);
 
-    if (className) {
-      element.className = className;
+    if (nomeClasse) {
+      elemento.className = nomeClasse;
     }
 
-    return element;
+    return elemento;
   }
 
   /**
    * Preenche atributos `data-*` de maneira centralizada.
    *
-   * @param {HTMLElement} element Elemento que recebera o dataset.
-   * @param {Record<string, string>} [dataset] Chaves e valores a aplicar.
+   * @param {HTMLElement} elemento Elemento que recebera o dataset.
+   * @param {Record<string, string>} [conjuntoDados] Chaves e valores a aplicar.
    * @returns {void}
    */
-  function assignDataset(element, dataset) {
-    Object.entries(dataset || {}).forEach(function assignData(entry) {
-      const [key, value] = entry;
-      element.dataset[key] = value;
+  function atribuirDados(elemento, conjuntoDados) {
+    Object.entries(conjuntoDados || {}).forEach(function atribuirDado(entrada) {
+      const [chave, valor] = entrada;
+      elemento.dataset[chave] = valor;
     });
   }
 
@@ -49,285 +49,285 @@
    * Cria um botao ja configurado com texto, atributos de acessibilidade e dataset.
    *
    * @param {{
-   *   className?: string,
-   *   textContent?: string,
-   *   ariaLabel?: string,
-   *   title?: string,
-   *   dataset?: Record<string, string>
-   * }} options Configuracao do botao.
+   *   nomeClasse?: string,
+   *   texto?: string,
+   *   rotuloAria?: string,
+   *   titulo?: string,
+   *   conjuntoDados?: Record<string, string>
+   * }} opcoes Configuracao do botao.
    * @returns {HTMLButtonElement} Botao pronto para uso na interface.
    */
-  function createButton(options) {
-    const buttonElement = createElement("button", options.className);
-    buttonElement.type = "button";
-    buttonElement.textContent = options.textContent || "";
+  function criarBotao(opcoes) {
+    const elementoBotao = criarElemento("button", opcoes.nomeClasse);
+    elementoBotao.type = "button";
+    elementoBotao.textContent = opcoes.texto || "";
 
-    if (options.ariaLabel) {
-      buttonElement.setAttribute("aria-label", options.ariaLabel);
+    if (opcoes.rotuloAria) {
+      elementoBotao.setAttribute("aria-label", opcoes.rotuloAria);
     }
 
-    if (options.title) {
-      buttonElement.title = options.title;
+    if (opcoes.titulo) {
+      elementoBotao.title = opcoes.titulo;
     }
 
-    assignDataset(buttonElement, options.dataset);
-    return buttonElement;
+    atribuirDados(elementoBotao, opcoes.conjuntoDados);
+    return elementoBotao;
   }
 
   /**
-   * Cria o campo editavel usado nos titulos de colunas e cards.
+   * Cria o campo editavel usado nos titulos de colunas e cartoes.
    *
    * @param {{
-   *   className: string,
-   *   value: string,
-   *   maxLength: number,
-   *   ariaLabel: string,
-   *   dataset: Record<string, string>
-   * }} options Configuracao do input.
+   *   nomeClasse: string,
+   *   valor: string,
+   *   tamanhoMaximo: number,
+   *   rotuloAria: string,
+   *   conjuntoDados: Record<string, string>
+   * }} opcoes Configuracao do input.
    * @returns {HTMLInputElement} Campo de texto pronto para ser renderizado.
    */
-  function createTitleInput(options) {
-    const inputElement = createElement("input", options.className);
-    inputElement.type = "text";
-    inputElement.value = options.value;
-    inputElement.maxLength = options.maxLength;
-    inputElement.setAttribute("aria-label", options.ariaLabel);
-    assignDataset(inputElement, options.dataset);
-    return inputElement;
+  function criarCampoTitulo(opcoes) {
+    const elementoCampo = criarElemento("input", opcoes.nomeClasse);
+    elementoCampo.type = "text";
+    elementoCampo.value = opcoes.valor;
+    elementoCampo.maxLength = opcoes.tamanhoMaximo;
+    elementoCampo.setAttribute("aria-label", opcoes.rotuloAria);
+    atribuirDados(elementoCampo, opcoes.conjuntoDados);
+    return elementoCampo;
   }
 
   /**
-   * Aplica variaveis CSS derivadas da cor escolhida para o card.
+   * Aplica variaveis CSS derivadas da cor escolhida para o cartao.
    * Assim o visual pode ser ajustado sem multiplicar classes de estilo.
    *
-   * @param {HTMLElement} cardElement Elemento visual do card.
-   * @param {string} normalizedCardColor Cor ja validada em hexadecimal.
+   * @param {HTMLElement} elementoCartao Elemento visual do cartao.
+   * @param {string} corCartaoNormalizada Cor ja validada em hexadecimal.
    * @returns {void}
    */
-  function applyCardColorTheme(cardElement, normalizedCardColor) {
-    if (!normalizedCardColor) {
+  function aplicarTemaCorCartao(elementoCartao, corCartaoNormalizada) {
+    if (!corCartaoNormalizada) {
       return;
     }
 
-    cardElement.style.setProperty(
-      "--card-surface",
-      tintHexColor(normalizedCardColor, 0.82)
+    elementoCartao.style.setProperty(
+      "--cartao-superficie",
+      clarearCorHexadecimal(corCartaoNormalizada, 0.82)
     );
-    cardElement.style.setProperty(
-      "--card-border",
-      tintHexColor(normalizedCardColor, 0.6)
+    elementoCartao.style.setProperty(
+      "--cartao-borda",
+      clarearCorHexadecimal(corCartaoNormalizada, 0.6)
     );
-    cardElement.style.setProperty("--card-accent", normalizedCardColor);
+    elementoCartao.style.setProperty("--cartao-destaque", corCartaoNormalizada);
   }
 
   /**
-   * Cria um botao individual dentro da paleta de cores do card.
+   * Cria um botao individual dentro da paleta de cores do cartao.
    *
-   * @param {string} cardId Card que sera atualizado ao clicar.
-   * @param {{ label: string, value: string }} option Opcao da paleta.
-   * @param {string} normalizedCardColor Cor atualmente ativa no card.
+   * @param {string} idCartao Cartao que sera atualizado ao clicar.
+   * @param {{ rotulo: string, valor: string }} opcao Opcao da paleta.
+   * @param {string} corCartaoNormalizada Cor atualmente ativa no cartao.
    * @returns {HTMLButtonElement} Botao de escolha de cor.
    */
-  function createColorOptionButton(cardId, option, normalizedCardColor) {
-    const className = option.value
-      ? "card__color-option"
-      : "card__color-option card__color-option--clear";
-    const buttonElement = createButton({
-      className,
-      ariaLabel: option.label,
-      title: option.label,
-      dataset: {
-        action: "set-card-color",
-        cardId,
-        colorValue: option.value,
+  function criarBotaoOpcaoCor(idCartao, opcao, corCartaoNormalizada) {
+    const nomeClasse = opcao.valor
+      ? "cartao__opcao-cor"
+      : "cartao__opcao-cor cartao__opcao-cor--limpar";
+    const elementoBotao = criarBotao({
+      nomeClasse,
+      rotuloAria: opcao.rotulo,
+      titulo: opcao.rotulo,
+      conjuntoDados: {
+        acao: "alterar-cor-cartao",
+        cartaoId: idCartao,
+        valorCor: opcao.valor,
       },
     });
 
-    buttonElement.setAttribute(
+    elementoBotao.setAttribute(
       "aria-pressed",
-      String(option.value === normalizedCardColor)
+      String(opcao.valor === corCartaoNormalizada)
     );
 
-    if (option.value) {
-      buttonElement.style.setProperty("--card-color-option-fill", option.value);
+    if (opcao.valor) {
+      elementoBotao.style.setProperty("--cartao-preenchimento-opcao-cor", opcao.valor);
     }
 
-    return buttonElement;
+    return elementoBotao;
   }
 
   /**
-   * Monta o seletor de cor exibido em cada card.
+   * Monta o seletor de cor exibido em cada cartao.
    *
-   * @param {string} cardId Card associado ao seletor.
-   * @param {string} normalizedCardColor Cor atualmente ativa.
+   * @param {string} idCartao Cartao associado ao seletor.
+   * @param {string} corCartaoNormalizada Cor atualmente ativa.
    * @returns {HTMLDetailsElement} Componente expansivel com a paleta de cores.
    */
-  function createColorPicker(cardId, normalizedCardColor) {
-    const colorPickerElement = createElement("details", "card__color-picker");
-    const colorToggleElement = createElement("summary", "card__color-toggle");
-    const colorMenuElement = createElement("div", "card__color-menu");
+  function criarSeletorCor(idCartao, corCartaoNormalizada) {
+    const elementoSeletorCor = criarElemento("details", "cartao__seletor-cor");
+    const elementoAlternadorCor = criarElemento("summary", "cartao__alternador-cor");
+    const elementoMenuCor = criarElemento("div", "cartao__menu-cor");
 
-    colorToggleElement.setAttribute("aria-label", "Escolher cor do card");
-    colorToggleElement.title = "Escolher cor do card";
-    colorToggleElement.style.setProperty(
-      "--card-color-button-fill",
-      normalizedCardColor || "#efe5d8"
+    elementoAlternadorCor.setAttribute("aria-label", "Escolher cor do cartao");
+    elementoAlternadorCor.title = "Escolher cor do cartao";
+    elementoAlternadorCor.style.setProperty(
+      "--cartao-preenchimento-botao-cor",
+      corCartaoNormalizada || "#efe5d8"
     );
 
-    cardColorOptions.forEach(function appendColorOption(option) {
-      colorMenuElement.append(
-        createColorOptionButton(cardId, option, normalizedCardColor)
+    opcoesCorCartao.forEach(function anexarOpcaoCor(opcao) {
+      elementoMenuCor.append(
+        criarBotaoOpcaoCor(idCartao, opcao, corCartaoNormalizada)
       );
     });
 
-    colorPickerElement.append(colorToggleElement, colorMenuElement);
-    return colorPickerElement;
+    elementoSeletorCor.append(elementoAlternadorCor, elementoMenuCor);
+    return elementoSeletorCor;
   }
 
   /**
-   * Agrupa os controles secundarios do card, como cor e exclusao.
+   * Agrupa os controles secundarios do cartao, como cor e exclusao.
    *
-   * @param {string} cardId Card que recebera as acoes.
-   * @param {string} normalizedCardColor Cor ativa do card.
-   * @returns {HTMLDivElement} Bloco de acoes do card.
+   * @param {string} idCartao Cartao que recebera as acoes.
+   * @param {string} corCartaoNormalizada Cor ativa do cartao.
+   * @returns {HTMLDivElement} Bloco de acoes do cartao.
    */
-  function createCardActions(cardId, normalizedCardColor) {
-    const cardActionsElement = createElement("div", "card__actions");
-    const removeCardButton = createButton({
-      className: "card__remove-button",
-      textContent: "x",
-      ariaLabel: "Excluir card",
-      dataset: {
-        action: "remove-card",
-        cardId,
+  function criarAcoesCartao(idCartao, corCartaoNormalizada) {
+    const elementoAcoesCartao = criarElemento("div", "cartao__acoes");
+    const elementoBotaoRemoverCartao = criarBotao({
+      nomeClasse: "cartao__botao-remover",
+      texto: "x",
+      rotuloAria: "Excluir cartao",
+      conjuntoDados: {
+        acao: "remover-cartao",
+        cartaoId: idCartao,
       },
     });
 
-    cardActionsElement.append(
-      createColorPicker(cardId, normalizedCardColor),
-      removeCardButton
+    elementoAcoesCartao.append(
+      criarSeletorCor(idCartao, corCartaoNormalizada),
+      elementoBotaoRemoverCartao
     );
 
-    return cardActionsElement;
+    return elementoAcoesCartao;
   }
 
   /**
-   * Cria o paragrafo de descricao apenas quando o card possui conteudo.
+   * Cria o paragrafo de descricao apenas quando o cartao possui conteudo.
    *
-   * @param {string} description Texto descritivo do card.
+   * @param {string} descricao Texto descritivo do cartao.
    * @returns {HTMLParagraphElement | null} Descricao renderizada ou `null`.
    */
-  function createCardDescription(description) {
-    if (!description) {
+  function criarDescricaoCartao(descricao) {
+    if (!descricao) {
       return null;
     }
 
-    const descriptionElement = createElement("p", "card__description");
-    descriptionElement.textContent = description;
-    return descriptionElement;
+    const elementoDescricao = criarElemento("p", "cartao__descricao");
+    elementoDescricao.textContent = descricao;
+    return elementoDescricao;
   }
 
   /**
-   * Converte um card do estado em um elemento `<article>`.
+   * Converte um cartao do estado em um elemento `<article>`.
    *
-   * @param {{ id: string, title: string, description?: string, color?: string }} card Dados do card.
-   * @returns {HTMLElement} Elemento completo do card.
+   * @param {{ id: string, titulo: string, descricao?: string, cor?: string }} cartao Dados do cartao.
+   * @returns {HTMLElement} Elemento completo do cartao.
    */
-  function createCardElement(card) {
-    const cardElement = createElement("article", "card");
-    const normalizedCardColor = normalizeHexColor(card.color);
-    const titleElement = createTitleInput({
-      className: "card__title-input",
-      value: card.title,
-      maxLength: 80,
-      ariaLabel: "Titulo do card",
-      dataset: {
-        cardTitleInput: "true",
-        cardId: card.id,
+  function criarElementoCartao(cartao) {
+    const elementoCartao = criarElemento("article", "cartao");
+    const corCartaoNormalizada = normalizarCorHexadecimal(cartao.cor);
+    const elementoTitulo = criarCampoTitulo({
+      nomeClasse: "cartao__campo-titulo",
+      valor: cartao.titulo,
+      tamanhoMaximo: 80,
+      rotuloAria: "Titulo do cartao",
+      conjuntoDados: {
+        campoTituloCartao: "true",
+        cartaoId: cartao.id,
       },
     });
-    const descriptionElement = createCardDescription(card.description);
+    const elementoDescricao = criarDescricaoCartao(cartao.descricao);
 
-    cardElement.dataset.cardId = card.id;
-    applyCardColorTheme(cardElement, normalizedCardColor);
-    cardElement.append(createCardActions(card.id, normalizedCardColor), titleElement);
+    elementoCartao.dataset.cartaoId = cartao.id;
+    aplicarTemaCorCartao(elementoCartao, corCartaoNormalizada);
+    elementoCartao.append(criarAcoesCartao(cartao.id, corCartaoNormalizada), elementoTitulo);
 
-    if (descriptionElement) {
-      cardElement.append(descriptionElement);
+    if (elementoDescricao) {
+      elementoCartao.append(elementoDescricao);
     }
 
-    return cardElement;
+    return elementoCartao;
   }
 
   /**
    * Monta o cabecalho da coluna com titulo, metadados e botao de remocao.
    *
-   * @param {{ id: string, title: string, cards: Array<object> }} column Dados da coluna.
+   * @param {{ id: string, titulo: string, cartoes: Array<object> }} coluna Dados da coluna.
    * @returns {HTMLElement} Cabecalho da coluna.
    */
-  function createColumnHeader(column) {
-    const headerElement = createElement("header", "column__header");
-    const titleWrapperElement = createElement("div");
-    const titleElement = createTitleInput({
-      className: "column__title-input",
-      value: column.title,
-      maxLength: 40,
-      ariaLabel: "Titulo da coluna",
-      dataset: {
-        columnTitleInput: "true",
-        columnId: column.id,
+  function criarCabecalhoColuna(coluna) {
+    const elementoCabecalho = criarElemento("header", "coluna__cabecalho");
+    const elementoEnvoltoriaTitulo = criarElemento("div");
+    const elementoTitulo = criarCampoTitulo({
+      nomeClasse: "coluna__campo-titulo",
+      valor: coluna.titulo,
+      tamanhoMaximo: 40,
+      rotuloAria: "Titulo da coluna",
+      conjuntoDados: {
+        campoTituloColuna: "true",
+        colunaId: coluna.id,
       },
     });
-    const metaElement = createElement("p", "column__meta");
-    const removeColumnButton = createButton({
-      className: "column__remove-button",
-      textContent: "x",
-      ariaLabel: "Excluir coluna",
-      dataset: {
-        action: "remove-column",
-        columnId: column.id,
+    const elementoMeta = criarElemento("p", "coluna__meta");
+    const elementoBotaoRemoverColuna = criarBotao({
+      nomeClasse: "coluna__botao-remover",
+      texto: "x",
+      rotuloAria: "Excluir coluna",
+      conjuntoDados: {
+        acao: "remover-coluna",
+        colunaId: coluna.id,
       },
     });
 
-    metaElement.textContent = formatCardCount(column.cards.length);
-    titleWrapperElement.append(titleElement, metaElement);
-    headerElement.append(titleWrapperElement, removeColumnButton);
+    elementoMeta.textContent = formatarQuantidadeCartoes(coluna.cartoes.length);
+    elementoEnvoltoriaTitulo.append(elementoTitulo, elementoMeta);
+    elementoCabecalho.append(elementoEnvoltoriaTitulo, elementoBotaoRemoverColuna);
 
-    return headerElement;
+    return elementoCabecalho;
   }
 
   /**
-   * Cria a area que recebe os cards renderizados e tambem serve como alvo
+   * Cria a area que recebe os cartoes renderizados e tambem serve como alvo
    * para o drag-and-drop.
    *
-   * @param {{ id: string, cards: Array<object> }} column Coluna em renderizacao.
-   * @returns {HTMLDivElement} Lista visual de cards.
+   * @param {{ id: string, cartoes: Array<object> }} coluna Coluna em renderizacao.
+   * @returns {HTMLDivElement} Lista visual de cartoes.
    */
-  function createCardsContainer(column) {
-    const cardsElement = createElement("div", "column__cards");
-    cardsElement.dataset.columnId = column.id;
+  function criarContainerCartoes(coluna) {
+    const elementoCartoes = criarElemento("div", "coluna__cartoes");
+    elementoCartoes.dataset.colunaId = coluna.id;
 
-    column.cards.forEach(function appendCard(card) {
-      cardsElement.append(createCardElement(card));
+    coluna.cartoes.forEach(function anexarCartao(cartao) {
+      elementoCartoes.append(criarElementoCartao(cartao));
     });
 
-    return cardsElement;
+    return elementoCartoes;
   }
 
   /**
-   * Cria o botao responsavel por adicionar cards dentro de uma coluna.
+   * Cria o botao responsavel por adicionar cartoes dentro de uma coluna.
    *
-   * @param {string} columnId Coluna que recebera o novo card.
+   * @param {string} idColuna Coluna que recebera o novo cartao.
    * @returns {HTMLButtonElement} Botao de adicao.
    */
-  function createAddCardButton(columnId) {
-    return createButton({
-      className: "column__add-card-button",
-      textContent: "+",
-      ariaLabel: "Adicionar card",
-      dataset: {
-        action: "add-card",
-        columnId,
+  function criarBotaoAdicionarCartao(idColuna) {
+    return criarBotao({
+      nomeClasse: "coluna__botao-adicionar-cartao",
+      texto: "+",
+      rotuloAria: "Adicionar cartao",
+      conjuntoDados: {
+        acao: "adicionar-cartao",
+        colunaId: idColuna,
       },
     });
   }
@@ -335,57 +335,57 @@
   /**
    * Converte uma coluna inteira do estado em um bloco visual completo.
    *
-   * @param {{ id: string, title: string, cards: Array<object> }} column Dados da coluna.
+   * @param {{ id: string, titulo: string, cartoes: Array<object> }} coluna Dados da coluna.
    * @returns {HTMLElement} Elemento da coluna.
    */
-  function createColumnElement(column) {
-    const columnElement = createElement("article", "column");
+  function criarElementoColuna(coluna) {
+    const elementoColuna = criarElemento("article", "coluna");
 
-    columnElement.dataset.columnId = column.id;
-    columnElement.append(
-      createColumnHeader(column),
-      createCardsContainer(column),
-      createAddCardButton(column.id)
+    elementoColuna.dataset.colunaId = coluna.id;
+    elementoColuna.append(
+      criarCabecalhoColuna(coluna),
+      criarContainerCartoes(coluna),
+      criarBotaoAdicionarCartao(coluna.id)
     );
 
-    return columnElement;
+    return elementoColuna;
   }
 
   /**
-   * Cria o botao exibido ao final do board para adicionar novas colunas.
+   * Cria o botao exibido ao final do quadro para adicionar novas colunas.
    *
    * @returns {HTMLButtonElement} Botao de adicao de coluna.
    */
-  function createAddColumnElement() {
-    return createButton({
-      className: "board__add-column-button",
-      textContent: "+ Nova coluna",
-      dataset: {
-        action: "add-column",
+  function criarBotaoAdicionarColuna() {
+    return criarBotao({
+      nomeClasse: "quadro__botao-adicionar-coluna",
+      texto: "+ Nova coluna",
+      conjuntoDados: {
+        acao: "adicionar-coluna",
       },
     });
   }
 
   /**
-   * Renderiza o estado inteiro do board substituindo o conteudo atual do DOM.
-   * O uso de `DocumentFragment` reduz repaints enquanto o board e reconstruido.
+   * Renderiza o estado inteiro do quadro substituindo o conteudo atual do DOM.
+   * O uso de `DocumentFragment` reduz repaints enquanto o quadro e reconstruido.
    *
-   * @param {HTMLElement} rootElement Container principal do quadro.
-   * @param {{ columns: Array<object> }} boardState Estado atual a ser renderizado.
+   * @param {HTMLElement} elementoRaiz Container principal do quadro.
+   * @param {{ colunas: Array<object> }} estadoQuadro Estado atual a ser renderizado.
    * @returns {void}
    */
-  function renderBoard(rootElement, boardState) {
-    const fragment = document.createDocumentFragment();
+  function renderizarQuadro(elementoRaiz, estadoQuadro) {
+    const fragmento = document.createDocumentFragment();
 
-    boardState.columns.forEach(function appendColumn(column) {
-      fragment.append(createColumnElement(column));
+    estadoQuadro.colunas.forEach(function anexarColuna(coluna) {
+      fragmento.append(criarElementoColuna(coluna));
     });
 
-    fragment.append(createAddColumnElement());
-    rootElement.replaceChildren(fragment);
+    fragmento.append(criarBotaoAdicionarColuna());
+    elementoRaiz.replaceChildren(fragmento);
   }
 
-  Kanban.ui = {
-    renderBoard,
+  Kanban.interface = {
+    renderizarQuadro,
   };
 })(window);
