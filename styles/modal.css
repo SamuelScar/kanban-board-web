@@ -1,5 +1,5 @@
 /* Janela modal reutilizada para confirmacoes e edicao de descricao. */
-.dialogo-texto {
+.modal-texto {
   width: min(560px, calc(100vw - 32px));
   margin: auto;
   padding: 0;
@@ -13,36 +13,36 @@
 }
 
 /* Confirmacoes usam uma largura menor para reforcar o foco na pergunta. */
-.dialogo-texto--confirmacao {
+.modal-texto--confirmacao {
   width: min(480px, calc(100vw - 32px));
 }
 
 /* Fundo semitransparente que separa o modal do quadro. */
-.dialogo-texto::backdrop {
+.modal-texto::backdrop {
   background: rgba(47, 42, 37, 0.34);
   backdrop-filter: blur(8px);
 }
 
-/* Animacao curta para evitar abertura brusca do dialogo. */
-.dialogo-texto[open] {
-  animation: entrada-dialogo 180ms ease;
+/* Animacao curta para evitar abertura brusca do modal. */
+.modal-texto[open] {
+  animation: entrada-modal 180ms ease;
 }
 
 /* Estrutura interna do formulario do modal. */
-.dialogo-texto__formulario {
+.modal-texto__formulario {
   display: grid;
   gap: 18px;
   padding: 24px;
 }
 
 /* Agrupa os textos informativos do topo do modal. */
-.dialogo-texto__cabecalho {
+.modal-texto__cabecalho {
   display: grid;
   gap: 8px;
 }
 
-/* Sobretitulo pequeno que indica o tipo de acao em andamento. */
-.dialogo-texto__sobretitulo {
+/* Subtitulo pequeno que indica o tipo de acao em andamento. */
+.modal-texto__subtitulo {
   margin: 0;
   font-size: 0.78rem;
   font-weight: 700;
@@ -52,44 +52,44 @@
 }
 
 /* Variacao cromatica usada quando a acao e destrutiva. */
-.dialogo-texto--destrutivo .dialogo-texto__sobretitulo {
+.modal-texto--destrutivo .modal-texto__subtitulo {
   color: #a6592b;
 }
 
-/* Titulo principal do dialogo. */
-.dialogo-texto__titulo {
+/* Titulo principal do modal. */
+.modal-texto__titulo {
   margin: 0;
   font-size: clamp(1.35rem, 2.2vw, 1.7rem);
   line-height: 1.05;
 }
 
 /* Texto auxiliar que contextualiza a operacao solicitada. */
-.dialogo-texto__descricao {
+.modal-texto__descricao {
   margin: 0;
   color: var(--texto-secundario);
   line-height: 1.45;
 }
 
 /* Campo rotulado do modo de edicao textual. */
-.dialogo-texto__campo {
+.modal-texto__campo {
   display: grid;
   gap: 10px;
 }
 
 /* O campo some completamente quando o modal esta no modo confirmacao. */
-.dialogo-texto__campo[hidden] {
+.modal-texto__campo[hidden] {
   display: none;
 }
 
 /* Rotulo acima da area de texto. */
-.dialogo-texto__rotulo {
+.modal-texto__rotulo {
   font-size: 0.92rem;
   font-weight: 700;
   color: var(--texto-secundario);
 }
 
-/* Area de texto editavel para a descricao do cartao. */
-.dialogo-texto__area-texto {
+/* Campo de texto editavel para a descricao do cartao. */
+.modal-texto__campo-descricao {
   min-height: 180px;
   width: 100%;
   padding: 16px 18px;
@@ -103,12 +103,12 @@
 }
 
 /* Mantem a selecao do texto alinhada com a paleta do app. */
-.dialogo-texto__area-texto::selection {
+.modal-texto__campo-descricao::selection {
   background: rgba(185, 111, 59, 0.22);
 }
 
 /* Estado de foco visivel para facilitar a escrita. */
-.dialogo-texto__area-texto:focus {
+.modal-texto__campo-descricao:focus {
   outline: none;
   border-color: rgba(185, 111, 59, 0.44);
   box-shadow:
@@ -117,14 +117,14 @@
 }
 
 /* Rodape com as acoes de confirmar e cancelar. */
-.dialogo-texto__acoes {
+.modal-texto__acoes {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
 /* Base visual compartilhada pelos botoes do modal. */
-.dialogo-texto__botao {
+.modal-texto__botao {
   min-width: 116px;
   padding: 12px 18px;
   border: 1px solid transparent;
@@ -138,43 +138,43 @@
 }
 
 /* Hover sutil para manter feedback sem exagerar na interface. */
-.dialogo-texto__botao:hover {
+.modal-texto__botao:hover {
   filter: brightness(1.02);
 }
 
 /* Halo de foco para navegacao por teclado. */
-.dialogo-texto__botao:focus-visible {
+.modal-texto__botao:focus-visible {
   outline: none;
   box-shadow: 0 0 0 4px rgba(185, 111, 59, 0.14);
 }
 
 /* Pequeno deslocamento que simula pressao do botao. */
-.dialogo-texto__botao:active {
+.modal-texto__botao:active {
   transform: translateY(1px);
 }
 
 /* Botao secundario de cancelamento. */
-.dialogo-texto__botao--secundario {
+.modal-texto__botao--secundario {
   border-color: rgba(80, 63, 46, 0.14);
   background: rgba(255, 255, 255, 0.6);
   color: var(--texto-principal);
 }
 
 /* Botao principal de confirmacao. */
-.dialogo-texto__botao--primario {
+.modal-texto__botao--primario {
   background: linear-gradient(180deg, #c57b44, #a6592b);
   color: #fff9f2;
   box-shadow: 0 12px 24px rgba(166, 89, 43, 0.18);
 }
 
 /* Versao mais intensa do botao principal para acoes destrutivas. */
-.dialogo-texto--destrutivo .dialogo-texto__botao--primario {
+.modal-texto--destrutivo .modal-texto__botao--primario {
   background: linear-gradient(180deg, #ba5d3a, #944127);
   box-shadow: 0 12px 24px rgba(148, 65, 39, 0.2);
 }
 
 /* Entrada animada do modal quando ele abre. */
-@keyframes entrada-dialogo {
+@keyframes entrada-modal {
   from {
     opacity: 0;
     transform: translateY(12px) scale(0.98);
