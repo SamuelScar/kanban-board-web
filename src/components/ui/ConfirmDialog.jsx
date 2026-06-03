@@ -60,7 +60,7 @@ export default function ConfirmDialog({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-          className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 flex flex-col gap-4 text-center items-center"
+          className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-6 flex flex-col gap-4 text-center items-center"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-[var(--color-brand-terracotta)] mb-2">
@@ -68,14 +68,14 @@ export default function ConfirmDialog({
           </div>
           
           <div>
-            <h2 className="text-xl font-bold text-black/90 mb-2">{titulo}</h2>
-            <p className="text-sm text-black/60 leading-relaxed">{descricao}</p>
+            <h2 className="text-xl font-bold text-black/90 dark:text-white/90 mb-2">{titulo}</h2>
+            <p className="text-sm text-black/60 dark:text-white/60 leading-relaxed">{descricao}</p>
           </div>
           
           <div className="flex gap-3 justify-center w-full mt-4">
             <button
               type="button"
-              className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-black/60 hover:text-black hover:bg-black/5 transition-colors cursor-pointer"
+              className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
               onClick={handleCancel}
             >
               {textoCancelar}
@@ -85,7 +85,7 @@ export default function ConfirmDialog({
               disabled={timeLeft > 0}
               className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold shadow-md transition-all
                 ${timeLeft > 0 
-                  ? 'bg-black/10 text-black/40 cursor-not-allowed shadow-none' 
+                  ? 'bg-black/10 dark:bg-white/10 text-black/40 dark:text-white/40 cursor-not-allowed shadow-none' 
                   : 'bg-[var(--color-brand-terracotta)] hover:bg-[var(--color-brand-terracotta)]/90 text-white shadow-[var(--color-brand-terracotta)]/20 cursor-pointer'
                 }`}
               onClick={handleConfirm}

@@ -32,9 +32,9 @@ export default function Column({ coluna, index }) {
   return (
     <Draggable draggableId={coluna.id} index={index}>
       {(provided, snapshot) => {
-        let className = 'flex flex-col flex-shrink-0 w-[320px] max-h-full bg-white/50 backdrop-blur-xl border border-white/60 rounded-3xl p-4 shadow-xl shadow-black/5 transition-all duration-300';
+        let className = 'flex flex-col flex-shrink-0 w-[320px] max-h-full bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-3xl p-4 shadow-xl shadow-black/5 transition-all duration-300';
         if (snapshot.isDragging) {
-          className += ' shadow-2xl scale-[1.02] bg-white/70 ring-4 ring-[var(--color-brand-terracotta)]/20 z-50';
+          className += ' shadow-2xl scale-[1.02] bg-white/70 dark:bg-black/50 ring-4 ring-[var(--color-brand-terracotta)]/20 z-50';
         }
 
         const style = {
@@ -68,13 +68,13 @@ export default function Column({ coluna, index }) {
                 maxLength={40}
                 aria-label="Título da coluna"
               />
-              <p className="text-xs font-medium text-black/40 mt-0.5 ml-1">{formatarQuantidadeCartoes(coluna.cartoes.length)}</p>
+              <p className="text-xs font-medium text-black/40 dark:text-white/40 mt-0.5 ml-1">{formatarQuantidadeCartoes(coluna.cartoes.length)}</p>
             </div>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               type="button"
-              className="text-black/20 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+              className="text-black/20 dark:text-white/20 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
               onClick={() => setShowConfirmDelete(true)}
               aria-label="Excluir coluna"
             >
@@ -97,7 +97,7 @@ export default function Column({ coluna, index }) {
           >
             {(providedDrop, snapshotDrop) => (
               <div
-                className={`flex-1 overflow-y-auto overflow-x-hidden px-1 -mx-1 py-1 -my-1 min-h-[50px] flex flex-col gap-3 rounded-2xl transition-colors duration-200 ${snapshotDrop.isDraggingOver ? 'bg-black/5 ring-inset ring-1 ring-black/10 p-2 -m-2' : ''}`}
+                className={`flex-1 overflow-y-auto overflow-x-hidden px-1 -mx-1 py-1 -my-1 min-h-[50px] flex flex-col gap-3 rounded-2xl transition-colors duration-200 ${snapshotDrop.isDraggingOver ? 'bg-black/5 dark:bg-white/5 ring-inset ring-1 ring-black/10 dark:ring-white/10 p-2 -m-2' : ''}`}
                 ref={providedDrop.innerRef}
                 {...providedDrop.droppableProps}
               >
@@ -113,7 +113,7 @@ export default function Column({ coluna, index }) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="button"
-            className="mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white/40 hover:bg-white/80 text-black/50 hover:text-[var(--color-brand-terracotta)] text-sm font-medium transition-colors cursor-pointer border border-transparent hover:border-black/5 shadow-sm"
+            className="mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white/40 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-black/50 dark:text-white/50 hover:text-[var(--color-brand-terracotta)] text-sm font-medium transition-colors cursor-pointer border border-transparent hover:border-black/5 dark:hover:border-white/5 shadow-sm"
             onClick={() => adicionarCartao(coluna.id, "")}
             aria-label="Adicionar cartão"
           >

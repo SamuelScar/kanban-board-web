@@ -6,12 +6,14 @@ import Modal from '../ui/Modal'
 import { Trash2, Palette } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ConfirmDialog from '../ui/ConfirmDialog'
+import MarkdownRenderer from '../ui/MarkdownRenderer'
 
 export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
   const atualizarTituloCartao = useStore((state) => state.atualizarTituloCartao)
   const atualizarCorCartao = useStore((state) => state.atualizarCorCartao)
   const removerCartao = useStore((state) => state.removerCartao)
   const atualizarDescricaoCartao = useStore((state) => state.atualizarDescricaoCartao)
+  const isPrivacyMode = useStore((state) => state.isPrivacyMode)
   
   const [modalOpen, setModalOpen] = useState(false)
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
@@ -99,14 +101,14 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
         className={`group relative flex flex-col gap-2 rounded-xl p-3.5 transition-all outline-none 
           ${isGhost ? 'opacity-0' : 'opacity-100'}
           ${isDraggingItem ? 'z-50 shadow-2xl scale-105' : 'shadow-sm hover:shadow-md'}
-          ${cartao.cor ? 'bg-[var(--cartao-superficie)] border border-[var(--cartao-borda)]' : 'bg-white border border-black/5'}
+          ${cartao.cor ? 'bg-[var(--cartao-superficie)] border border-[var(--cartao-borda)]' : 'bg-white dark:bg-zinc-800 border border-black/5 dark:border-white/5'}
         `}
       >
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <div ref={detailsRef} className="relative">
             <button
               type="button"
-              className="p-1.5 text-black/40 hover:text-black/80 hover:bg-black/5 rounded transition-colors cursor-pointer"
+              className="p-1.5 text-black/40 dark:text-white/40 hover:text-black/80 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded transition-colors cursor-pointer"
               onClick={(e) => { e.stopPropagation(); setColorMenuOpen(!colorMenuOpen); }}
               aria-label="Escolher cor do cartão"
             >
@@ -119,7 +121,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
                   initial={{ opacity: 0, y: -5, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -5, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-black/10 p-2 flex gap-1 z-50 min-w-max"
+                  className="absolute right-0 top-full mt-1 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-black/10 dark:border-white/10 p-2 flex gap-1 z-50 min-w-max"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {OPCOES_COR_CARTAO.map((opcao) => (
@@ -138,7 +140,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
           </div>
           <button
             type="button"
-            className="p-1.5 text-black/30 hover:text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer"
+            className="p-1.5 text-black/30 dark:text-white/30 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors cursor-pointer"
             aria-label="Excluir cartão"
             onClick={handleRemoverClick}
           >
@@ -147,8 +149,9 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
         </div>
         
         <input
-          className={`w-[calc(100%-48px)] text-[15px] font-medium leading-tight bg-transparent border-none outline-none rounded -ml-1 px-1 focus:ring-2 focus:ring-black/10 truncate
-            ${cartao.cor ? 'text-[var(--cartao-destaque)]' : 'text-black/80'}
+          className={`w-[calc(100%-48px)] text-[15px] font-medium leading-tight bg-transparent border-none outline-none rounded -ml-1 px-1 focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 truncate transition-all duration-300
+            ${cartao.cor ? 'text-[var(--cartao-destaque)]' : 'text-black/80 dark:text-white/80'}
+            ${isPrivacyMode ? 'blur-sm hover:blur-none focus:blur-none' : ''}
           `}
           style={{ filter: cartao.cor ? 'brightness(0.6)' : 'none' }}
           type="text"
@@ -160,9 +163,12 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
         />
         
         {cartao.descricao && (
-          <p className="text-[13px] text-black/60 leading-snug line-clamp-3 overflow-hidden cursor-text" onClick={() => setModalOpen(true)}>
-            {cartao.descricao}
-          </p>
+          <div 
+            className={`text-[13px] text-black/60 dark:text-white/60 leading-snug line-clamp-3 overflow-hidden cursor-text transition-all duration-300 ${isPrivacyMode ? 'blur-sm hover:blur-none' : ''}`} 
+            onClick={() => setModalOpen(true)}
+          >
+            <MarkdownRenderer content={cartao.descricao} />
+          </div>
         )}
       </article>
 

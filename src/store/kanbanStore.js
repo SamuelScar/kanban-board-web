@@ -1,6 +1,32 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import { z } from 'zod'
+import CryptoJS from 'crypto-js'
 import { criarId, normalizarTexto, normalizarCorHexadecimal } from '../utils'
+
+// Definindo o schema de validação para garantir a integridade dos dados locais
+const cartaoSchema = z.object({
+  id: z.string(),
+  titulo: z.string().max(200, "Título muito longo"), // Limite generoso (um tweet antigo)
+  descricao: z.string().max(10000, "Descrição excedeu o limite").optional(), // ~5 páginas de texto
+  cor: z.string().max(10).optional()
+});
+
+const colunaSchema = z.object({
+  id: z.string(),
+  titulo: z.string().max(100, "Título de coluna muito longo"),
+  cartoes: z.array(cartaoSchema)
+});
+
+const kanbanSchema = z.object({
+  colunas: z.array(colunaSchema).optional(),
+  avisoEducacionalVisto: z.boolean().optional().default(false),
+  isLocked: z.boolean().optional().default(false),
+  encryptedData: z.string().nullable().optional().default(null),
+  isPrivacyMode: z.boolean().optional().default(false),
+  tema: z.enum(['light', 'dark', 'system']).optional().default('system'),
+  atalhosAtivos: z.boolean().optional().default(true)
+});
 
 const criarQuadroInicial = () => ({
   colunas: [
@@ -45,10 +71,168 @@ const criarQuadroInicial = () => ({
   ],
 })
 
+// Motor de Storage Customizado
+const cryptoStorage = {
+  getItem: (name) => {
+    const str = localStorage.getItem(name);
+    if (!str) return null;
+
+    if (str.startsWith("ENC:")) {
+      const senha = sessionStorage.getItem("kanban_senha");
+      if (!senha) {
+        // Quadro trancado! Retorna um estado mockado avisando a interface
+        return JSON.stringify({ state: { isLocked: true, encryptedData: str }, version: 0 });
+      }
+      try {
+        const bytes = CryptoJS.AES.decrypt(str.slice(4), senha);
+        const decryptedStr = bytes.toString(CryptoJS.enc.Utf8);
+        if (!decryptedStr) throw new Error("Senha incorreta");
+        return decryptedStr;
+      } catch (e) {
+        // Se a senha estiver errada (ou sessão trocada), trata como trancado
+        return JSON.stringify({ state: { isLocked: true, encryptedData: str }, version: 0 });
+      }
+    }
+    return str; // Dados não criptografados
+  },
+  setItem: (name, value) => {
+    // Evita sobrescrever o localStorage se o estado atual estiver "trancado"
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed?.state?.isLocked) return; 
+    } catch(e) {}
+
+    const senha = sessionStorage.getItem("kanban_senha");
+    if (senha) {
+      const encrypted = CryptoJS.AES.encrypt(value, senha).toString();
+      localStorage.setItem(name, "ENC:" + encrypted);
+    } else {
+      localStorage.setItem(name, value);
+    }
+  },
+  removeItem: (name) => localStorage.removeItem(name),
+}
+
+// Helpers para o Rate Limit da tela de bloqueio
+const getRateLimit = () => {
+  try {
+    return JSON.parse(localStorage.getItem('kanban_rate_limit')) || { falhas: 0, bloqueadoAte: null };
+  } catch (e) {
+    return { falhas: 0, bloqueadoAte: null };
+  }
+};
+const saveRateLimit = (data) => localStorage.setItem('kanban_rate_limit', JSON.stringify(data));
+
+// Helpers para a Senha de Pânico
+const getPanicHash = () => localStorage.getItem('kanban_panic_hash');
+const savePanicHash = (hash) => localStorage.setItem('kanban_panic_hash', hash);
+const clearPanicHash = () => localStorage.removeItem('kanban_panic_hash');
+
 export const useStore = create(
   persist(
     (set) => ({
       ...criarQuadroInicial(),
+      erroRecuperacao: false,
+      avisoEducacionalVisto: false,
+      isLocked: false,
+      encryptedData: null,
+      erroDesbloqueio: false,
+      tentativasFalhas: getRateLimit().falhas,
+      bloqueadoAte: getRateLimit().bloqueadoAte,
+      isPrivacyMode: false,
+      tema: 'system',
+      atalhosAtivos: true,
+      _forceSave: 0,
+      
+      limparErroRecuperacao: () => set({ erroRecuperacao: false }),
+      marcarAvisoEducacionalVisto: () => set({ avisoEducacionalVisto: true }),
+      togglePrivacyMode: () => set(state => ({ isPrivacyMode: !state.isPrivacyMode })),
+      definirTema: (novoTema) => set({ tema: novoTema }),
+      toggleAtalhos: () => set(state => ({ atalhosAtivos: !state.atalhosAtivos })),
+      
+      tentarDesbloquear: (senha) => set((state) => {
+        // Se estiver no período de bloqueio, nem tenta
+        if (state.bloqueadoAte && Date.now() < state.bloqueadoAte) {
+          return state;
+        }
+
+        if (!state.encryptedData) return state;
+
+        // 1. Verifica MODO PÂNICO primeiro
+        const panicHash = getPanicHash();
+        if (panicHash && CryptoJS.SHA256(senha).toString() === panicHash) {
+          // AUTODESTRUIÇÃO SILENCIOSA
+          localStorage.removeItem('kanban-board-web:estado');
+          localStorage.removeItem('kanban_rate_limit');
+          clearPanicHash();
+          sessionStorage.removeItem("kanban_senha");
+          
+          return {
+            ...criarQuadroInicial(),
+            isLocked: false,
+            encryptedData: null,
+            erroDesbloqueio: false,
+            tentativasFalhas: 0,
+            bloqueadoAte: null,
+            isPrivacyMode: false,
+            _forceSave: Date.now() // força salvar vazio sobrescrevendo tudo
+          };
+        }
+
+        // 2. Fluxo Normal de Descriptografia
+        try {
+          const bytes = CryptoJS.AES.decrypt(state.encryptedData.slice(4), senha);
+          const decryptedStr = bytes.toString(CryptoJS.enc.Utf8);
+          if (!decryptedStr) throw new Error("Senha incorreta");
+          
+          const parsed = JSON.parse(decryptedStr);
+          const dadosValidados = kanbanSchema.parse(parsed.state);
+          
+          sessionStorage.setItem("kanban_senha", senha);
+          saveRateLimit({ falhas: 0, bloqueadoAte: null });
+          
+          return {
+            ...dadosValidados,
+            isLocked: false,
+            encryptedData: null,
+            erroDesbloqueio: false,
+            tentativasFalhas: 0,
+            bloqueadoAte: null
+          };
+        } catch (erro) {
+          const novasFalhas = state.tentativasFalhas + 1;
+          const novoBloqueio = novasFalhas >= 5 ? Date.now() + 60000 : state.bloqueadoAte;
+          saveRateLimit({ falhas: novasFalhas, bloqueadoAte: novoBloqueio });
+          
+          return { 
+            erroDesbloqueio: true,
+            tentativasFalhas: novasFalhas,
+            bloqueadoAte: novoBloqueio
+          };
+        }
+      }),
+
+      trancarSessao: () => {
+        // Limpa a chave em memória e recarrega a página para limpar o estado do React
+        sessionStorage.removeItem("kanban_senha");
+        window.location.reload();
+      },
+
+      definirSenha: (novaSenha, senhaPanico) => set(() => {
+        sessionStorage.setItem("kanban_senha", novaSenha);
+        if (senhaPanico) {
+          savePanicHash(CryptoJS.SHA256(senhaPanico).toString());
+        } else {
+          clearPanicHash();
+        }
+        return { _forceSave: Date.now() }; // Força o persist a salvar com a nova senha
+      }),
+
+      removerSenha: () => set(() => {
+        sessionStorage.removeItem("kanban_senha");
+        clearPanicHash();
+        return { _forceSave: Date.now() }; // Força o persist a salvar sem senha (texto plano)
+      }),
       
       adicionarColuna: (titulo) => set((state) => ({
         colunas: [
@@ -166,6 +350,10 @@ export const useStore = create(
         ...criarQuadroInicial()
       })),
 
+      importarDados: (novasColunas) => set(() => ({
+        colunas: novasColunas
+      })),
+
       moverColuna: (idColuna, indiceDestino) => set((state) => {
         const indiceOrigem = state.colunas.findIndex(c => c.id === idColuna);
         if (indiceOrigem === -1) return state;
@@ -206,6 +394,26 @@ export const useStore = create(
     }),
     {
       name: 'kanban-board-web:estado', // Mantem a mesma key de antes, entao os dados antigos devem carregar automaticamente!
+      storage: createJSONStorage(() => cryptoStorage),
+      merge: (persistedState, currentState) => {
+        try {
+          // Valida estritamente os dados que vêm do LocalStorage
+          const dadosValidados = kanbanSchema.parse(persistedState);
+          return { ...currentState, ...dadosValidados };
+        } catch (erro) {
+          console.error("Dados salvos no navegador estão corrompidos. Restaurando estado padrão para evitar tela branca.", erro);
+          
+          // QUARENTENA: Salva o dado corrompido em uma chave de backup antes de o Zustand sobrescrever com o padrão
+          try {
+            localStorage.setItem(`kanban-board-web:quarentena-${Date.now()}`, JSON.stringify(persistedState));
+          } catch (e) {
+            console.error("Falha ao salvar quarentena", e);
+          }
+
+          // Se os dados estiverem bagunçados, descarta e usa o currentState inicial, mas avisa a interface
+          return { ...currentState, erroRecuperacao: true };
+        }
+      }
     }
   )
 )

@@ -104,7 +104,7 @@ export default function ClearBoardDialog({ isOpen, onClose }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-          className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col gap-6"
+          className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col gap-6"
           onClick={(e) => e.stopPropagation()}
         >
           <AnimatePresence mode="wait">
@@ -122,8 +122,8 @@ export default function ClearBoardDialog({ isOpen, onClose }) {
                     <AlertTriangle size={24} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-black/90">Opções de Limpeza</h2>
-                    <p className="text-sm text-black/60">Escolha como deseja resetar o seu quadro hoje.</p>
+                    <h2 className="text-xl font-bold text-black/90 dark:text-white/90">Opções de Limpeza</h2>
+                    <p className="text-sm text-black/60 dark:text-white/60">Escolha como deseja resetar o seu quadro hoje.</p>
                   </div>
                 </div>
                 
@@ -141,12 +141,12 @@ export default function ClearBoardDialog({ isOpen, onClose }) {
                         checked={modo === opcao.id}
                         onChange={() => setModo(opcao.id)}
                       />
-                      <div className={`shrink-0 ${modo === opcao.id ? 'text-[var(--color-brand-terracotta)]' : 'text-black/40'}`}>
+                      <div className={`shrink-0 ${modo === opcao.id ? 'text-[var(--color-brand-terracotta)]' : 'text-black/40 dark:text-white/40'}`}>
                         {opcao.icone}
                       </div>
                       <div className="flex-1">
-                        <h3 className={`font-semibold ${modo === opcao.id ? 'text-[var(--color-brand-text)]' : 'text-black/70'}`}>{opcao.titulo}</h3>
-                        <p className="text-sm text-black/50">{opcao.descricao}</p>
+                        <h3 className={`font-semibold ${modo === opcao.id ? 'text-[var(--color-brand-text)]' : 'text-black/70 dark:text-white/70'}`}>{opcao.titulo}</h3>
+                        <p className="text-sm text-black/50 dark:text-white/50">{opcao.descricao}</p>
                       </div>
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${modo === opcao.id ? 'border-[var(--color-brand-terracotta)]' : 'border-black/20'}`}>
                         {modo === opcao.id && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-brand-terracotta)]" />}
@@ -158,7 +158,7 @@ export default function ClearBoardDialog({ isOpen, onClose }) {
                 <div className="flex gap-3 justify-end mt-2">
                   <button
                     type="button"
-                    className="px-5 py-2.5 rounded-lg text-sm font-semibold text-black/60 hover:text-black hover:bg-black/5 transition-colors cursor-pointer"
+                    className="px-5 py-2.5 rounded-lg text-sm font-semibold text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
                     onClick={handleCancel}
                   >
                     Cancelar
@@ -186,14 +186,14 @@ export default function ClearBoardDialog({ isOpen, onClose }) {
                 </div>
                 
                 <div>
-                  <h2 className="text-xl font-bold text-black/90 mb-2">Tem certeza absoluta?</h2>
-                  <p className="text-sm text-black/60 leading-relaxed max-w-xs">{getConfirmText()}</p>
+                  <h2 className="text-xl font-bold text-black/90 dark:text-white/90 mb-2">Tem certeza absoluta?</h2>
+                  <p className="text-sm text-black/60 dark:text-white/60 leading-relaxed max-w-xs">{getConfirmText()}</p>
                 </div>
                 
                 <div className="flex gap-3 justify-center w-full mt-4">
                   <button
                     type="button"
-                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-black/60 hover:text-black hover:bg-black/5 transition-colors cursor-pointer"
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
                     onClick={handleVoltar}
                   >
                     Voltar
@@ -203,7 +203,7 @@ export default function ClearBoardDialog({ isOpen, onClose }) {
                     disabled={timeLeft > 0}
                     className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold shadow-md transition-all
                       ${timeLeft > 0 
-                        ? 'bg-black/10 text-black/40 cursor-not-allowed shadow-none' 
+                        ? 'bg-black/10 dark:bg-white/10 text-black/40 dark:text-white/40 cursor-not-allowed shadow-none' 
                         : 'bg-[var(--color-brand-terracotta)] hover:bg-[var(--color-brand-terracotta)]/90 text-white shadow-[var(--color-brand-terracotta)]/20 cursor-pointer'
                       }`}
                     onClick={handleConfirm}
