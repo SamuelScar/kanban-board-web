@@ -154,6 +154,18 @@ export const useStore = create(
         }
       }),
 
+      limparCartoes: () => set((state) => ({
+        colunas: state.colunas.map(col => ({ ...col, cartoes: [] }))
+      })),
+
+      limparTudo: () => set(() => ({
+        colunas: []
+      })),
+
+      restaurarPadrao: () => set(() => ({
+        ...criarQuadroInicial()
+      })),
+
       moverColuna: (idColuna, indiceDestino) => set((state) => {
         const indiceOrigem = state.colunas.findIndex(c => c.id === idColuna);
         if (indiceOrigem === -1) return state;

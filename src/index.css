@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-terracotta: #c65e43;
+  --color-brand-sand: #e8ba71;
+  --color-brand-sage: #84a98c;
+  --color-brand-bg: #fbf9f6;
+  --color-brand-text: #2d2926;
+  --font-sans: 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-text);
+  font-family: var(--font-sans);
+}

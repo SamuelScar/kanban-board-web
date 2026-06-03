@@ -1,6 +1,8 @@
 import { useStore } from '../../store/kanbanStore'
 import { Droppable } from '@hello-pangea/dnd'
 import Column from './Column'
+import { motion } from 'framer-motion'
+import { Plus } from 'lucide-react'
 
 export default function Board() {
   const colunas = useStore((state) => state.colunas)
@@ -10,7 +12,7 @@ export default function Board() {
     <Droppable droppableId="board" type="column" direction="horizontal">
       {(provided) => (
         <section
-          className="quadro"
+          className="flex gap-6 h-full items-start"
           aria-label="Quadro Kanban"
           ref={provided.innerRef}
           {...provided.droppableProps}
@@ -20,13 +22,16 @@ export default function Board() {
           ))}
           {provided.placeholder}
           
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.8)' }}
+            whileTap={{ scale: 0.98 }}
             type="button"
-            className="quadro__botao-adicionar-coluna"
+            className="flex-shrink-0 flex items-center justify-center gap-2 w-[320px] h-[72px] rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-md border border-white/50 text-black/60 hover:text-black/90 font-medium transition-colors shadow-sm cursor-pointer"
             onClick={() => adicionarColuna()}
           >
-            + Nova coluna
-          </button>
+            <Plus size={20} />
+            Nova coluna
+          </motion.button>
         </section>
       )}
     </Droppable>

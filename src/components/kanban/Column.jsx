@@ -2,16 +2,20 @@ import { useStore } from '../../store/kanbanStore'
 import { formatarQuantidadeCartoes } from '../../utils'
 import { Draggable, Droppable } from '@hello-pangea/dnd'
 import Card, { CardBase } from './Card'
+import { Trash2, Plus } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { useState } from 'react'
+import ConfirmDialog from '../ui/ConfirmDialog'
 
 export default function Column({ coluna, index }) {
   const removerColuna = useStore((state) => state.removerColuna)
   const adicionarCartao = useStore((state) => state.adicionarCartao)
   const atualizarTituloColuna = useStore((state) => state.atualizarTituloColuna)
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
   const handleRemover = () => {
-    if (window.confirm(coluna.cartoes.length === 0 ? `A coluna "${coluna.titulo}" será removida.` : `A coluna "${coluna.titulo}" e seus ${coluna.cartoes.length} cartões serão removidos.`)) {
-      removerColuna(coluna.id)
-    }
+    removerColuna(coluna.id)
+    setShowConfirmDelete(false)
   }
 
   const handleTituloChange = (e) => {
@@ -28,9 +32,9 @@ export default function Column({ coluna, index }) {
   return (
     <Draggable draggableId={coluna.id} index={index}>
       {(provided, snapshot) => {
-        let className = 'coluna';
+        let className = 'flex flex-col flex-shrink-0 w-[320px] max-h-full bg-white/50 backdrop-blur-xl border border-white/60 rounded-3xl p-4 shadow-xl shadow-black/5 transition-all duration-300';
         if (snapshot.isDragging) {
-          className += ' coluna--arrastando';
+          className += ' shadow-2xl scale-[1.02] bg-white/70 ring-4 ring-[var(--color-brand-terracotta)]/20 z-50';
         }
 
         const style = {
@@ -42,7 +46,7 @@ export default function Column({ coluna, index }) {
             style.transition = 'none';
           }
           if (provided.draggableProps.style?.transform) {
-            style.transform = `${provided.draggableProps.style.transform} rotate(1deg)`;
+            style.transform = `${provided.draggableProps.style.transform} rotate(2deg)`;
           }
         }
 
@@ -53,10 +57,10 @@ export default function Column({ coluna, index }) {
             {...provided.draggableProps}
             style={style}
           >
-          <header className="coluna__cabecalho" {...provided.dragHandleProps}>
-            <div>
+          <header className="flex items-center justify-between px-2 pb-4 group" {...provided.dragHandleProps}>
+            <div className="flex-1 min-w-0 pr-4">
               <input
-                className="coluna__campo-titulo"
+                className="w-full text-[17px] font-semibold text-[var(--color-brand-text)] bg-transparent border-none outline-none focus:ring-2 focus:ring-[var(--color-brand-terracotta)]/40 rounded px-1 -mx-1 truncate"
                 type="text"
                 value={coluna.titulo}
                 onChange={handleTituloChange}
@@ -64,16 +68,18 @@ export default function Column({ coluna, index }) {
                 maxLength={40}
                 aria-label="Título da coluna"
               />
-              <p className="coluna__meta">{formatarQuantidadeCartoes(coluna.cartoes.length)}</p>
+              <p className="text-xs font-medium text-black/40 mt-0.5 ml-1">{formatarQuantidadeCartoes(coluna.cartoes.length)}</p>
             </div>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               type="button"
-              className="coluna__botao-remover"
-              onClick={handleRemover}
+              className="text-black/20 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+              onClick={() => setShowConfirmDelete(true)}
               aria-label="Excluir coluna"
             >
-              x
-            </button>
+              <Trash2 size={16} />
+            </motion.button>
           </header>
 
           <Droppable 
@@ -91,13 +97,9 @@ export default function Column({ coluna, index }) {
           >
             {(providedDrop, snapshotDrop) => (
               <div
-                className="coluna__cartoes"
+                className={`flex-1 overflow-y-auto overflow-x-hidden px-1 -mx-1 py-1 -my-1 min-h-[50px] flex flex-col gap-3 rounded-2xl transition-colors duration-200 ${snapshotDrop.isDraggingOver ? 'bg-black/5 ring-inset ring-1 ring-black/10 p-2 -m-2' : ''}`}
                 ref={providedDrop.innerRef}
                 {...providedDrop.droppableProps}
-                style={{
-                  backgroundColor: snapshotDrop.isDraggingOver ? 'rgba(255, 255, 255, 0.18)' : undefined,
-                  boxShadow: snapshotDrop.isDraggingOver ? 'inset 0 0 0 1px rgba(185, 111, 59, 0.14)' : undefined
-                }}
               >
                 {coluna.cartoes.map((cartao, idx) => (
                   <Card key={cartao.id} cartao={cartao} index={idx} idColuna={coluna.id} />
@@ -107,14 +109,26 @@ export default function Column({ coluna, index }) {
             )}
           </Droppable>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             type="button"
-            className="coluna__botao-adicionar-cartao"
-            onClick={() => adicionarCartao(coluna.id)}
+            className="mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white/40 hover:bg-white/80 text-black/50 hover:text-[var(--color-brand-terracotta)] text-sm font-medium transition-colors cursor-pointer border border-transparent hover:border-black/5 shadow-sm"
+            onClick={() => adicionarCartao(coluna.id, "")}
             aria-label="Adicionar cartão"
           >
-            +
-          </button>
+            <Plus size={16} />
+            Adicionar
+          </motion.button>
+          
+          <ConfirmDialog 
+            isOpen={showConfirmDelete}
+            titulo="Excluir coluna?"
+            descricao={coluna.cartoes.length === 0 ? `A coluna "${coluna.titulo}" será removida.` : `A coluna "${coluna.titulo}" e seus ${coluna.cartoes.length} cartões serão removidos.`}
+            textoConfirmar="Excluir"
+            onConfirm={handleRemover}
+            onCancel={() => setShowConfirmDelete(false)}
+          />
         </article>
         )
       }}
