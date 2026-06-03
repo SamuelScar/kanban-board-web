@@ -1,41 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KBW</title>
-    <!-- Camada base de tokens, layout geral, quadro, modal e ajustes responsivos. -->
-    <link rel="stylesheet" href="./styles/base.css" />
-    <link rel="stylesheet" href="./styles/layout.css" />
-    <link rel="stylesheet" href="./styles/board.css" />
-    <link rel="stylesheet" href="./styles/modal.css" />
-    <link rel="stylesheet" href="./styles/responsive.css" />
-  </head>
-  <body>
-    <!-- Casca principal da aplicacao: cabecalho fixo e area do quadro. -->
-    <div class="aplicacao">
-      <header class="aplicacao__cabecalho">
-        <h1>KBW</h1>
-      </header>
 
-      <main class="aplicacao__principal">
-        <!-- O quadro e renderizado inteiramente via JavaScript a partir do estado. -->
-        <section
-          class="quadro"
-          data-quadro
-          aria-label="Quadro Kanban"
-        ></section>
-      </main>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KBW</title>
+</head>
 
-    <!-- A ordem dos scripts respeita as dependencias entre os modulos. -->
-    <script src="./node_modules/sortablejs/Sortable.min.js" defer></script>
-    <script src="./scripts/utils.js" defer></script>
-    <script src="./scripts/state.js" defer></script>
-    <script src="./scripts/storage.js" defer></script>
-    <script src="./scripts/ui.js" defer></script>
-    <script src="./scripts/modal.js" defer></script>
-    <script src="./scripts/drag-drop.js" defer></script>
-    <script src="./scripts/app.js" defer></script>
-  </body>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
