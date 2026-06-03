@@ -3,14 +3,16 @@
 Esta é a lista de ideias e features planejadas para escalar o Kanban Board Web para o próximo nível:
 
 ## Produtividade e UX
-- [ ] **Atalhos de teclado:** Adicionar suporte a navegação por teclado (ex: criar cartão com `C`, apagar com `Del`, mover com setas, navegar entre inputs).
-- [ ] **Temporizador de tarefas (Pomodoro):** Integrar um timer diretamente nos cartões para focar em tempo de trabalho contínuo.
+- [x] **Atalhos de teclado:** Adicionar suporte a atalhos globais configuráveis (ex: focar "Nova coluna" com `C`, alternar temas com `T`, fechar modais com `Esc`).
+- [x] **Temporizador de tarefas (Pomodoro):** Integrar um timer diretamente nos cartões para focar em tempo de trabalho contínuo.
 - [ ] **Assistente de Inteligência Artificial:** Integrar IA para ajudar a quebrar tarefas grandes em subtarefas, sugerir melhorias de escopo ou priorizar o backlog.
 
 ## Imersão e Personalização
-- [ ] **Efeitos sonoros:** Feedback de áudio satisfatório ao arrastar/soltar cartões, concluir tarefas e apagar itens, incluindo um controle global de volume (Mudo/Ligado).
+- [x] **Efeitos sonoros base:** Feedback de áudio (Web Audio API) ao arrastar/soltar cartões e concluir Pomodoro, incluindo controle global de mute.
+- [ ] **Efeitos sonoros avançados:** Adicionar sons para outras interações secundárias (ex: apagar cartão, criar coluna) e explorar novas texturas/pacotes sonoros.
 - [ ] **Adição de música:** Player embutido opcional com faixas de foco (Lo-Fi, Ambiente) para melhorar a concentração durante o uso da ferramenta.
-- [ ] **Sistema de Temas Avançado:** Adicionar suporte a Dark Mode, criação de temas personalizados pelo usuário (cores customizadas) e uma opção para exportar/importar temas criados.
+- [x] **Sistema de Temas Avançado:** Adicionar suporte a Dark Mode detectando o sistema e permitindo a troca manual na interface. (Futuro: criação de temas personalizados)
+- [ ] **Template Padrão Customizável:** Permitir que o usuário defina um arquivo JSON próprio como o seu "Layout Padrão". Ao usar a função "Restaurar Quadro", o Kanban recarregará essa estrutura salva em vez do Backlog original do app (se o cache for limpo, volta ao original).
 
 ## Segurança e Privacidade
 - [x] **Migração para PNPM (Supply Chain Security):** Migrar o gerenciador de pacotes de `npm` para `pnpm`. O `pnpm` é mais rápido, cria um `node_modules` mais limpo e strict. *Nota: É 100% seguro pois baixa exatamente as mesmas bibliotecas do registro oficial do NPM.*

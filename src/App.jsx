@@ -1,7 +1,7 @@
 import { DragDropContext } from '@hello-pangea/dnd'
 import { useStore } from './store/kanbanStore'
 import Board from './components/kanban/Board'
-import { Plus, RefreshCw, AlertTriangle, X, Database, Eye, EyeOff, Moon, Sun, Monitor, Settings, Keyboard } from 'lucide-react'
+import { Plus, RefreshCw, AlertTriangle, X, Database, Eye, EyeOff, Moon, Sun, Monitor, Settings, Keyboard, Volume2, VolumeX } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
 import ClearBoardDialog from './components/ui/ClearBoardDialog'
@@ -11,7 +11,9 @@ import BackupModal from './components/ui/BackupModal'
 import LockScreen from './components/ui/LockScreen'
 import AutoLockManager from './components/ui/AutoLockManager'
 import CheatSheetModal from './components/ui/CheatSheetModal'
+import PomodoroWidget from './components/ui/PomodoroWidget'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { playPluck, playDrop } from './utils/audio'
 
 function App() {
   const isLocked = useStore((state) => state.isLocked)
@@ -34,6 +36,9 @@ function App() {
 
   const atalhosAtivos = useStore(state => state.atalhosAtivos)
   const toggleAtalhos = useStore(state => state.toggleAtalhos)
+  
+  const somAtivo = useStore(state => state.somAtivo)
+  const toggleSom = useStore(state => state.toggleSom)
 
   useEffect(() => {
     const root = document.documentElement
@@ -94,7 +99,12 @@ if (isLocked) {
     return <LockScreen />
   }
 
+  const onDragStart = () => {
+    playPluck()
+  }
+
   const onDragEnd = (result) => {
+    playDrop()
     const { destination, source, type, draggableId } = result
     if (!destination) return
     if (destination.droppableId === source.droppableId && destination.index === source.index) return
@@ -164,6 +174,18 @@ if (isLocked) {
             {tema === 'system' ? <Monitor size={18} /> : tema === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
             <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:ml-2">
               Tema: {tema === 'system' ? 'Sistema' : tema === 'dark' ? 'Escuro' : 'Claro'}
+            </span>
+          </motion.button>
+
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleSom}
+            className="group flex items-center px-3 py-2 text-sm font-medium text-black/60 dark:text-white/60 hover:text-black/90 dark:hover:text-white transition-all rounded-lg hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
+          >
+            {somAtivo ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:ml-2">
+              Sons: {somAtivo ? 'Ligados' : 'Desligados'}
             </span>
           </motion.button>
 
@@ -257,7 +279,7 @@ if (isLocked) {
 
       {/* Main Board Area */}
       <main className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-8 pb-8">
-        <DragDropContext onDragEnd={onDragEnd}>
+        <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <Board />
         </DragDropContext>
       </main>
@@ -284,6 +306,8 @@ if (isLocked) {
         isOpen={showCheatSheet}
         onClose={() => setShowCheatSheet(false)}
       />
+      
+      <PomodoroWidget />
     </div>
   )
 }

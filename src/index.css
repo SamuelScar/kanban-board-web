@@ -44,8 +44,12 @@ body {
 .markdown-body strong { font-weight: 600; }
 .markdown-body blockquote { border-left: 3px solid rgba(0,0,0,0.1); padding-left: 0.75em; color: rgba(0,0,0,0.6); margin-bottom: 0.5em; }
 .dark .markdown-body blockquote { border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
-.markdown-body code { background: rgba(0,0,0,0.05); padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
-.dark .markdown-body code { background: rgba(255,255,255,0.1); }
-.markdown-body pre { background: rgba(0,0,0,0.05); padding: 0.75em; border-radius: 6px; overflow-x: auto; margin-bottom: 0.5em; }
-.dark .markdown-body pre { background: rgba(255,255,255,0.05); }
-.markdown-body pre code { background: transparent; padding: 0; font-size: 0.85em; }
+@keyframes svg-edge {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.animate-svg-edge-light {
+  animation: svg-edge 3s linear infinite;
+  will-change: stroke-dashoffset;
+}

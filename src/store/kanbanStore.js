@@ -25,7 +25,8 @@ const kanbanSchema = z.object({
   encryptedData: z.string().nullable().optional().default(null),
   isPrivacyMode: z.boolean().optional().default(false),
   tema: z.enum(['light', 'dark', 'system']).optional().default('system'),
-  atalhosAtivos: z.boolean().optional().default(true)
+  atalhosAtivos: z.boolean().optional().default(true),
+  somAtivo: z.boolean().optional().default(true)
 });
 
 const criarQuadroInicial = () => ({
@@ -142,6 +143,8 @@ export const useStore = create(
       isPrivacyMode: false,
       tema: 'system',
       atalhosAtivos: true,
+      somAtivo: true,
+      tarefaAtivaId: null,
       _forceSave: 0,
       
       limparErroRecuperacao: () => set({ erroRecuperacao: false }),
@@ -149,6 +152,10 @@ export const useStore = create(
       togglePrivacyMode: () => set(state => ({ isPrivacyMode: !state.isPrivacyMode })),
       definirTema: (novoTema) => set({ tema: novoTema }),
       toggleAtalhos: () => set(state => ({ atalhosAtivos: !state.atalhosAtivos })),
+      toggleSom: () => set(state => ({ somAtivo: !state.somAtivo })),
+      
+      setTarefaAtiva: (id) => set({ tarefaAtivaId: id }),
+      limparTarefaAtiva: () => set({ tarefaAtivaId: null }),
       
       tentarDesbloquear: (senha) => set((state) => {
         // Se estiver no período de bloqueio, nem tenta
