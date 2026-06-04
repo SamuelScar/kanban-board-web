@@ -15,6 +15,8 @@ import CheatSheetModal from './components/ui/CheatSheetModal'
 import PomodoroWidget from './components/ui/PomodoroWidget'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { playPluck, playDrop } from './utils/audio'
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 function App() {
   const isLocked = useStore((state) => state.isLocked)
@@ -179,6 +181,10 @@ function App() {
       />
       
       <PomodoroWidget />
+      
+      {/* Vercel Analytics & Speed Insights */}
+      <Analytics />
+      <SpeedInsights />
     </div>
   )
 }

@@ -286,13 +286,21 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
           aria-label="Título do cartão"
         />
         
-        {cartao.descricao && (
+        {cartao.descricao ? (
           <div 
             className={`text-[13px] leading-snug line-clamp-3 overflow-hidden cursor-text transition-all duration-300 ${isPrivacyMode ? 'blur-sm hover:blur-none' : ''} ${cartao.cor ? 'text-[var(--cartao-texto-light)] dark:text-[var(--cartao-texto-dark)] opacity-90' : 'text-black/60 dark:text-white/60'}`} 
             onClick={() => setModalOpen(true)}
           >
             <MarkdownRenderer content={cartao.descricao} />
           </div>
+        ) : (
+          <button 
+            type="button"
+            className="text-left text-[11px] font-medium text-black/30 dark:text-white/30 hover:text-black/60 dark:hover:text-white/60 transition-colors mt-0.5 cursor-pointer w-max px-1 -ml-1 rounded hover:bg-black/5 dark:hover:bg-white/5"
+            onClick={(e) => { e.stopPropagation(); setModalOpen(true); }}
+          >
+            + Adicionar descrição...
+          </button>
         )}
       </article>
 

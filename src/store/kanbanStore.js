@@ -7,10 +7,13 @@ import { createSecuritySlice } from './securitySlice'
 import { createPreferencesSlice } from './preferencesSlice'
 import { createRadioSlice } from './radioSlice'
 
-// ── Store Composta ─────────────────────────────────────────────
-// Ponto central de composição dos slices. Cada slice é responsável
-// por um domínio específico (board, segurança, preferências).
-
+/**
+ * ── Store Composta (Zustand) ───────────────────────────────────
+ * Ponto central de composição dos slices.
+ * Utiliza o padrão de "Slices" para dividir o domínio do estado 
+ * em pedaços menores (board, segurança, preferências, rádio).
+ * Inclui o middleware de persistência integrado com Zod e AES-256.
+ */
 export const useStore = create(
   persist(
     (set) => ({
@@ -24,8 +27,8 @@ export const useStore = create(
       storage: createKanbanStorage(),
       merge: (persistedState, currentState) => {
         try {
-          // Valida estritamente os dados que vêm do LocalStorage
-          const dadosValidados = kanbanSchema.parse(persistedState)
+          // Valida estritamente os dados que vêm do LocalStorage (garante objeto vazio se for o primeiro acesso)
+          const dadosValidados = kanbanSchema.parse(persistedState || {})
           return { ...currentState, ...dadosValidados }
         } catch (erro) {
           console.error("Dados salvos no navegador estão corrompidos. Restaurando estado padrão para evitar tela branca.", erro)
