@@ -6,6 +6,7 @@ import { createBoardSlice } from './boardSlice'
 import { createSecuritySlice } from './securitySlice'
 import { createPreferencesSlice } from './preferencesSlice'
 import { createRadioSlice } from './radioSlice'
+import { createSyncSlice } from './syncSlice'
 
 /**
  * ── Store Composta (Zustand) ───────────────────────────────────
@@ -16,11 +17,12 @@ import { createRadioSlice } from './radioSlice'
  */
 export const useStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...createBoardSlice(set),
       ...createSecuritySlice(set),
       ...createPreferencesSlice(set),
       ...createRadioSlice(set),
+      ...createSyncSlice(set, get),
     }),
     {
       name: STORAGE_KEYS.ESTADO, // Mantem a mesma key de antes, entao os dados antigos devem carregar automaticamente!

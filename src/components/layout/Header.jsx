@@ -1,5 +1,6 @@
 import { useStore } from '../../store/kanbanStore'
-import { Plus, RefreshCw, X, Database, Eye, EyeOff, Moon, Sun, Monitor, ShieldCheck, Settings, Keyboard, Volume2, VolumeX } from 'lucide-react'
+import { Plus, RefreshCw, X, Database, Eye, EyeOff, Moon, Sun, Monitor, ShieldCheck, Settings, Keyboard, Volume2, VolumeX, Cloud, AlertCircle } from 'lucide-react'
+import { verificarPermissao } from '../../utils/fileSyncUtils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useRef, useCallback } from 'react'
 import { useClickOutside } from '../../hooks/useClickOutside'
@@ -20,6 +21,10 @@ export default function Header({
   const toggleAtalhos = useStore(state => state.toggleAtalhos)
   const somAtivo = useStore(state => state.somAtivo)
   const toggleSom = useStore(state => state.toggleSom)
+  
+  const syncStatus = useStore(state => state.syncStatus)
+  const syncFileHandle = useStore(state => state.syncFileHandle)
+  const setSyncStatus = useStore(state => state.setSyncStatus)
 
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const settingsMenuRef = useRef(null)
@@ -36,6 +41,28 @@ export default function Header({
           <div className="w-2 h-5 bg-[var(--color-brand-sage)] rounded-full" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight">KBW</h1>
+
+        {/* Sync Status Chip */}
+        {syncStatus === 'ativo' && (
+          <div className="hidden sm:flex items-center gap-1.5 ml-2 px-2.5 py-1 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-full cursor-help" title="Sincronizando com arquivo físico">
+            <Cloud size={14} />
+            Sincronizado
+          </div>
+        )}
+        {syncStatus === 'pausado_permissao' && (
+          <button 
+            onClick={async () => {
+              if (syncFileHandle) {
+                const liberado = await verificarPermissao(syncFileHandle, true);
+                if (liberado) setSyncStatus('ativo');
+              }
+            }}
+            className="hidden sm:flex items-center gap-1.5 ml-2 px-3 py-1 bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-full cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-500/30 transition-colors animate-pulse shadow-sm"
+          >
+            <AlertCircle size={14} />
+            Sincronização Pausada - Clique para Autorizar
+          </button>
+        )}
       </div>
 
       {/* Actions */}

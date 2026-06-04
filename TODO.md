@@ -30,6 +30,6 @@ Esta é a lista de ideias e features planejadas para escalar o Kanban Board Web 
 - [x] **Criptografia Local (Opcional):** Fornecer uma opção (toggle) nas configurações para criptografar os dados salvos usando uma senha fornecida pelo usuário (AES). Se ativado, pedir a senha ao abrir o app.
 
 ## Escalabilidade e Colaboração
-- [ ] **Sincronização com File System API:** (Futuro) Em vez de usar apenas o `localStorage` (que é volátil), pedir permissão ao usuário para salvar/sincronizar o arquivo JSON diretamente em uma pasta física no computador dele.
+- [x] **Sincronização com File System API:** (Futuro) Em vez de usar apenas o `localStorage` (que é volátil), pedir permissão ao usuário para salvar/sincronizar o arquivo JSON diretamente em uma pasta física no computador dele.
 - [ ] **Recuperação de Quarentena:** (Futuro) Criar uma interface avançada ou script para permitir que o usuário tente visualizar e recuperar o JSON corrompido que foi salvo no `localStorage` durante a falha do Zod.
 - [ ] **Livemode (Trabalho em Equipe):** Evoluir a ferramenta de `localStorage` para um backend em tempo real (ex: WebSockets / Socket.io / Firebase) para permitir múltiplos cursores e colaboração ao vivo.
