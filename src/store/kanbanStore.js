@@ -5,6 +5,7 @@ import { kanbanSchema, createKanbanStorage } from './cryptoStorage'
 import { createBoardSlice } from './boardSlice'
 import { createSecuritySlice } from './securitySlice'
 import { createPreferencesSlice } from './preferencesSlice'
+import { createRadioSlice } from './radioSlice'
 
 // ── Store Composta ─────────────────────────────────────────────
 // Ponto central de composição dos slices. Cada slice é responsável
@@ -16,6 +17,7 @@ export const useStore = create(
       ...createBoardSlice(set),
       ...createSecuritySlice(set),
       ...createPreferencesSlice(set),
+      ...createRadioSlice(set),
     }),
     {
       name: STORAGE_KEYS.ESTADO, // Mantem a mesma key de antes, entao os dados antigos devem carregar automaticamente!

@@ -7,10 +7,14 @@ export const createPreferencesSlice = (set) => ({
   tema: 'system',
   atalhosAtivos: true,
   somAtivo: true,
+  tempoFoco: 25,
+  tempoPausa: 5,
 
   marcarAvisoEducacionalVisto: () => set({ avisoEducacionalVisto: true }),
   togglePrivacyMode: () => set(state => ({ isPrivacyMode: !state.isPrivacyMode })),
   definirTema: (novoTema) => set({ tema: novoTema }),
   toggleAtalhos: () => set(state => ({ atalhosAtivos: !state.atalhosAtivos })),
   toggleSom: () => set(state => ({ somAtivo: !state.somAtivo })),
+  definirTempoFoco: (minutos) => set({ tempoFoco: minutos }),
+  definirTempoPausa: (minutos) => set({ tempoPausa: minutos }),
 })

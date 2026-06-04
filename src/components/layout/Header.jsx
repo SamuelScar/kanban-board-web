@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useRef, useCallback } from 'react'
 import { useClickOutside } from '../../hooks/useClickOutside'
 import { playSwitch } from '../../utils/audio'
+import RadioPlayer from '../ui/RadioPlayer'
 
 export default function Header({
   onToggleTema,
@@ -61,6 +62,9 @@ export default function Header({
           icon={tema === 'system' ? <Monitor size={18} /> : tema === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
           label={`Tema: ${tema === 'system' ? 'Sistema' : tema === 'dark' ? 'Escuro' : 'Claro'}`}
         />
+
+        {/* Rádio Lofi/Ambient */}
+        <RadioPlayer />
 
         {/* Som */}
         <HeaderButton

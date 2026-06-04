@@ -27,7 +27,12 @@ export const kanbanSchema = z.object({
   isPrivacyMode: z.boolean().optional().default(false),
   tema: z.enum(['light', 'dark', 'system']).optional().default('system'),
   atalhosAtivos: z.boolean().optional().default(true),
-  somAtivo: z.boolean().optional().default(true)
+  somAtivo: z.boolean().optional().default(true),
+  tempoFoco: z.number().min(1).max(120).optional().default(25),
+  tempoPausa: z.number().min(1).max(60).optional().default(5),
+  radioVolume: z.number().optional().default(0.3),
+  currentStationIndex: z.number().optional().default(0),
+  radioStatus: z.enum(['idle', 'loading', 'playing', 'error']).optional().default('idle')
 })
 
 // ── Motor de Storage Customizado ───────────────────────────────
