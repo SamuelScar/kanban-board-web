@@ -10,6 +10,7 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
   const [importStatus, setImportStatus] = useState(null)
   const [importError, setImportError] = useState('')
   const fileInputRef = useRef(null)
+  const templateFileInputRef = useRef(null)
   
   const [novaSenha, setNovaSenha] = useState('')
   const [senhaPanico, setSenhaPanico] = useState('')
@@ -59,6 +60,24 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
     } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleTemplateFileSelect = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    try {
+      const colunasImportadas = await processarArquivoImportacao(file)
+      salvarTemplatePadrao(colunasImportadas)
+      alert("Template importado e salvo com sucesso!")
+    } catch (erro) {
+      console.error(erro)
+      alert(erro.message || 'Falha ao ler o arquivo de template.')
+    } finally {
+      if (templateFileInputRef.current) {
+        templateFileInputRef.current.value = ''
       }
     }
   }
@@ -236,9 +255,23 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
 
             {mode === 'dados' && activeTab === 'template' && (
               <div className="space-y-6">
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                  Crie o seu próprio modelo de quadro. Quando você usar a função <strong>"Restaurar Quadro"</strong>, nós recarregaremos exatamente o layout que você salvar aqui, em vez do modelo padrão do aplicativo.
-                </p>
+                <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-4">
+                  <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-100 mb-2">Como criar seu próprio modelo?</h4>
+                  <ol className="text-xs text-indigo-800 dark:text-indigo-200 list-decimal pl-4 space-y-1.5 font-medium">
+                    <li>Edite as colunas do seu quadro principal (adicione, renomeie ou exclua) para criar a sua estrutura ideal.</li>
+                    <li>Volte nesta tela e clique em <strong>"Salvar Estrutura Atual"</strong>.</li>
+                    <li><em>Alternativa:</em> Se já tiver um modelo pronto, clique em <strong>"Importar de Arquivo (.json)"</strong>.</li>
+                    <li>Pronto! Sempre que usar a função "Limpar Quadro", o sistema carregará este seu modelo.</li>
+                  </ol>
+                </div>
+
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  className="hidden" 
+                  ref={templateFileInputRef}
+                  onChange={handleTemplateFileSelect}
+                />
 
                 {templatePadrao ? (
                   <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
@@ -249,15 +282,25 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
                       <h4 className="font-bold text-indigo-900 dark:text-indigo-100 text-lg">Template Ativo</h4>
                       <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">Seu quadro possui um esqueleto customizado salvo.</p>
                     </div>
-                    <button 
-                      onClick={() => {
-                        removerTemplatePadrao();
-                        alert("Template removido. O quadro voltará ao layout de fábrica quando restaurado.");
-                      }}
-                      className="mt-4 px-6 py-2.5 bg-white dark:bg-zinc-800 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 font-semibold rounded-lg shadow-sm border border-red-100 dark:border-red-500/20 transition-all cursor-pointer"
-                    >
-                      Remover Template Customizado
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4 w-full">
+                      <button 
+                        onClick={() => {
+                          if (confirm("Tem certeza que deseja remover o template customizado?")) {
+                            removerTemplatePadrao();
+                          }
+                        }}
+                        className="flex-1 px-4 py-2.5 bg-white dark:bg-zinc-800 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 font-semibold rounded-lg shadow-sm border border-red-100 dark:border-red-500/20 transition-all cursor-pointer"
+                      >
+                        Remover Template
+                      </button>
+                      <button 
+                        onClick={() => templateFileInputRef.current?.click()}
+                        className="flex-1 px-4 py-2.5 bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 font-semibold rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Upload size={18} />
+                        Importar (.json)
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="bg-gray-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
@@ -270,16 +313,27 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
                         O sistema está usando o layout de demonstração original (Backlog, Em andamento, Concluído).
                       </p>
                     </div>
-                    <button 
-                      onClick={() => {
-                        salvarTemplatePadrao(colunas);
-                        alert("Quadro atual salvo como Template Padrão com sucesso!");
-                      }}
-                      className="mt-4 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all cursor-pointer flex items-center gap-2"
-                    >
-                      <LayoutTemplate size={18} />
-                      Salvar Estrutura Atual como Template
-                    </button>
+                    
+                    <div className="flex flex-col gap-3 mt-4 w-full px-2 sm:px-6">
+                      <button 
+                        onClick={() => {
+                          salvarTemplatePadrao(colunas);
+                          alert("Quadro atual salvo como Template Padrão com sucesso!");
+                        }}
+                        className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <LayoutTemplate size={18} />
+                        Salvar Estrutura Atual
+                      </button>
+                      
+                      <button 
+                        onClick={() => templateFileInputRef.current?.click()}
+                        className="w-full py-2.5 bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 font-semibold rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Upload size={18} />
+                        Importar de Arquivo (.json)
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

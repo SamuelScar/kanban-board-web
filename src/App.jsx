@@ -150,7 +150,7 @@ function App() {
         onShowCheatSheet={() => setIsCheatSheetOpen(true)}
       />
 
-      <main className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-8 pb-8">
+      <main className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-4 md:px-8 pb-4 md:pb-8">
         <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <Board />
         </DragDropContext>

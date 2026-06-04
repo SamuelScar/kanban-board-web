@@ -27,7 +27,7 @@ export default function Header({
   useClickOutside(settingsMenuRef, useCallback(() => setShowSettingsMenu(false), []))
 
   return (
-    <header className="relative z-50 px-8 py-6 flex justify-between items-center w-full">
+    <header className="relative z-50 px-4 md:px-8 py-4 md:py-6 flex justify-between items-center w-full">
       {/* Logo */}
       <div className="flex items-center gap-3">
         <div className="flex items-end gap-1 h-6">
@@ -39,40 +39,43 @@ export default function Header({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
-        {/* Privacidade */}
-        <HeaderButton
-          onClick={() => { playSwitch(); togglePrivacyMode() }}
-          active={isPrivacyMode}
-          activeClassName="text-[var(--color-brand-terracotta)] bg-[var(--color-brand-terracotta)]/10"
-          icon={isPrivacyMode ? <EyeOff size={18} /> : <Eye size={18} />}
-          label="Privacidade"
-        />
+      <div className="flex items-center gap-1 md:gap-2">
+        {/* Ações Desktop */}
+        <div className="hidden md:flex items-center gap-1 md:gap-2">
+          {/* Privacidade */}
+          <HeaderButton
+            onClick={() => { playSwitch(); togglePrivacyMode() }}
+            active={isPrivacyMode}
+            activeClassName="text-[var(--color-brand-terracotta)] bg-[var(--color-brand-terracotta)]/10"
+            icon={isPrivacyMode ? <EyeOff size={18} /> : <Eye size={18} />}
+            label="Privacidade"
+          />
 
-        {/* Limpar Quadro */}
-        <HeaderButton
-          onClick={onShowClearDialog}
-          icon={<RefreshCw size={18} />}
-          label="Limpar Quadro"
-          hoverClassName="hover:text-[var(--color-brand-terracotta)] hover:bg-[var(--color-brand-terracotta)]/10"
-        />
+          {/* Limpar Quadro */}
+          <HeaderButton
+            onClick={onShowClearDialog}
+            icon={<RefreshCw size={18} />}
+            label="Limpar Quadro"
+            hoverClassName="hover:text-[var(--color-brand-terracotta)] hover:bg-[var(--color-brand-terracotta)]/10"
+          />
 
-        {/* Tema */}
-        <HeaderButton
-          onClick={() => { playSwitch(); onToggleTema() }}
-          icon={tema === 'system' ? <Monitor size={18} /> : tema === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-          label={`Tema: ${tema === 'system' ? 'Sistema' : tema === 'dark' ? 'Escuro' : 'Claro'}`}
-        />
+          {/* Tema */}
+          <HeaderButton
+            onClick={() => { playSwitch(); onToggleTema() }}
+            icon={tema === 'system' ? <Monitor size={18} /> : tema === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+            label={`Tema: ${tema === 'system' ? 'Sistema' : tema === 'dark' ? 'Escuro' : 'Claro'}`}
+          />
 
-        {/* Rádio Lofi/Ambient */}
+          {/* Som */}
+          <HeaderButton
+            onClick={toggleSom}
+            icon={somAtivo ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            label={`Sons: ${somAtivo ? 'Ligados' : 'Desligados'}`}
+          />
+        </div>
+
+        {/* Rádio Lofi/Ambient (Sempre Visível) */}
         <RadioPlayer />
-
-        {/* Som */}
-        <HeaderButton
-          onClick={toggleSom}
-          icon={somAtivo ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          label={`Sons: ${somAtivo ? 'Ligados' : 'Desligados'}`}
-        />
 
         {/* Configurações (com dropdown) */}
         <div className="relative" ref={settingsMenuRef}>
@@ -116,12 +119,49 @@ export default function Header({
                     <span>Segurança do Quadro</span>
                   </button>
 
+                  {/* Itens visíveis apenas no mobile */}
+                  <div className="md:hidden border-t border-black/5 dark:border-white/5 my-1"></div>
+                  
+                  <button
+                    onClick={() => { playSwitch(); togglePrivacyMode(); setShowSettingsMenu(false); }}
+                    className={`md:hidden w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${isPrivacyMode ? 'text-[var(--color-brand-terracotta)] bg-[var(--color-brand-terracotta)]/10' : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'}`}
+                  >
+                    {isPrivacyMode ? <EyeOff size={16} /> : <Eye size={16} />}
+                    <span>Privacidade</span>
+                  </button>
+
+                  <button
+                    onClick={() => { onShowClearDialog(); setShowSettingsMenu(false); }}
+                    className="md:hidden w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-black/70 dark:text-white/70 hover:bg-[var(--color-brand-terracotta)]/10 hover:text-[var(--color-brand-terracotta)] transition-colors cursor-pointer"
+                  >
+                    <RefreshCw size={16} />
+                    <span>Limpar Quadro</span>
+                  </button>
+
+                  <button
+                    onClick={() => { playSwitch(); onToggleTema(); }}
+                    className="md:hidden w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    {tema === 'system' ? <Monitor size={16} /> : tema === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                    <span>Tema: {tema === 'system' ? 'Sistema' : tema === 'dark' ? 'Escuro' : 'Claro'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => { toggleSom(); }}
+                    className="md:hidden w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    {somAtivo ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                    <span>Sons: {somAtivo ? 'Ligados' : 'Desligados'}</span>
+                  </button>
+                  
+                  <div className="md:hidden border-t border-black/5 dark:border-white/5 my-1"></div>
+
                   <button
                     onClick={() => {
                       setShowSettingsMenu(false);
                       onShowCheatSheet();
                     }}
-                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                    className="hidden md:flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <Keyboard size={16} />
@@ -130,7 +170,7 @@ export default function Header({
                     <kbd className="text-[10px] font-mono px-1.5 py-0.5 bg-black/10 dark:bg-white/10 rounded">?</kbd>
                   </button>
 
-                  <div className="flex items-center justify-between px-3 py-2.5 mt-1 border-t border-black/5 dark:border-white/5">
+                  <div className="hidden md:flex items-center justify-between px-3 py-2.5 mt-1 border-t border-black/5 dark:border-white/5">
                     <span className="text-sm font-medium text-black/70 dark:text-white/70">Ativar Atalhos</span>
                     <button
                       onClick={toggleAtalhos}

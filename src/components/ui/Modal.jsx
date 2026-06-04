@@ -10,7 +10,9 @@ export default function Modal({
   descricaoTexto = "",
   valorInicial = "",
   onClose,
-  onSave
+  onSave,
+  extraActions,
+  children
 }) {
   const [valor, setValor] = useState(valorInicial)
   const [activeTab, setActiveTab] = useState('editar')
@@ -115,21 +117,28 @@ export default function Modal({
             )}
           </div>
           
-          <div className="flex gap-3 justify-end mt-2">
-            <button
-              type="button"
-              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
-              onClick={handleCancel}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-[var(--color-brand-terracotta)] hover:bg-[var(--color-brand-terracotta)]/90 text-white shadow-md shadow-[var(--color-brand-terracotta)]/20 transition-colors cursor-pointer"
-              onClick={handleConfirm}
-            >
-              Salvar
-            </button>
+          {children}
+          
+          <div className="flex justify-between items-center mt-2 pt-4 border-t border-black/5 dark:border-white/5">
+            <div className="flex gap-2">
+              {extraActions}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg text-sm font-semibold text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                onClick={handleCancel}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg text-sm font-semibold bg-[var(--color-brand-terracotta)] hover:bg-[var(--color-brand-terracotta)]/90 text-white shadow-md shadow-[var(--color-brand-terracotta)]/20 transition-colors cursor-pointer"
+                onClick={handleConfirm}
+              >
+                Salvar
+              </button>
+            </div>
           </div>
         </motion.form>
       </div>

@@ -5,7 +5,7 @@ import { OPCOES_COR_CARTAO, clarearCorHexadecimal } from '../../utils'
 import { TIMEOUTS } from '../../constants/storage'
 import { Draggable } from '@hello-pangea/dnd'
 import Modal from '../ui/Modal'
-import { Trash2, Palette, Timer } from 'lucide-react'
+import { Trash2, Palette, Timer, MoreHorizontal, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import MarkdownRenderer from '../ui/MarkdownRenderer'
@@ -26,6 +26,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
   
   const [modalOpen, setModalOpen] = useState(false)
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [colorMenuPos, setColorMenuPos] = useState({ top: 0, right: 0, above: true })
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [showConfirmTimerSwitch, setShowConfirmTimerSwitch] = useState(false)
@@ -38,6 +39,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
   useClickOutside(clickRefs, useCallback(() => {
     setColorMenuOpen(false)
     setShowConfirmTimerSwitch(false)
+    setMobileMenuOpen(false)
   }, []))
 
   useEffect(() => {
@@ -157,7 +159,28 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
             </g>
           </svg>
         )}
-        <div className={`absolute bottom-2 right-2 flex gap-1 transition-all bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md px-1.5 py-1 rounded-lg border border-black/5 dark:border-white/5 shadow-sm z-10 ${(colorMenuOpen || showConfirmTimerSwitch) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+        {/* Botão de reticências exclusivo para mobile/tablet */}
+        <button
+          type="button"
+          className={`absolute bottom-2 right-2 p-1.5 bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md rounded-lg border border-black/5 dark:border-white/5 shadow-sm text-black/60 dark:text-white/60 z-20 transition-all [@media(hover:hover)]:hidden ${mobileMenuOpen ? 'text-red-500 hover:text-red-600' : 'hover:text-black dark:hover:text-white'}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMobileMenuOpen(!mobileMenuOpen);
+            if (mobileMenuOpen) {
+              setColorMenuOpen(false);
+              setShowConfirmTimerSwitch(false);
+            }
+          }}
+        >
+          {mobileMenuOpen ? <X size={14} /> : <MoreHorizontal size={14} />}
+        </button>
+
+        <div className={`absolute bottom-2 right-10 [@media(hover:hover)]:right-2 gap-1 transition-all bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md px-1.5 py-1 rounded-lg border border-black/5 dark:border-white/5 shadow-sm z-10 
+          ${(colorMenuOpen || showConfirmTimerSwitch || mobileMenuOpen) 
+            ? 'flex opacity-100' 
+            : 'hidden opacity-0 [@media(hover:hover)]:flex [@media(hover:hover)]:group-hover:opacity-100'
+          }
+        `}>
           
           <AnimatePresence mode="wait">
             {showConfirmTimerSwitch ? (
@@ -220,7 +243,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
                         const above = rect.top > 60
                         setColorMenuPos({
                           top: above ? rect.top - 4 : rect.bottom + 4,
-                          right: window.innerWidth - rect.right,
+                          right: Math.max(10, window.innerWidth - rect.right),
                           above,
                         })
                       }
@@ -320,7 +343,58 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
             atualizarDescricaoCartao(idColuna, cartao.id, novaDescricao)
             setModalOpen(false)
           }}
-        />
+          extraActions={
+            <>
+              <button
+                type="button"
+                className={`p-2 sm:px-3 rounded-lg transition-colors cursor-pointer flex items-center gap-2 font-medium text-sm border ${isAtiva ? 'text-[var(--color-brand-sage)] border-[var(--color-brand-sage)]/30 bg-[var(--color-brand-sage)]/10' : 'text-black/60 dark:text-white/60 border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (isAtiva) {
+                    limparTarefaAtiva();
+                  } else {
+                    setTarefaAtiva(cartao.id);
+                  }
+                }}
+              >
+                <Timer size={16} />
+                <span className="hidden sm:inline">{isAtiva ? 'Pausar Foco' : 'Focar'}</span>
+              </button>
+
+              <button
+                type="button"
+                className="p-2 sm:px-3 rounded-lg transition-colors cursor-pointer flex items-center gap-2 font-medium text-sm text-red-500/70 border border-red-500/20 hover:bg-red-50 dark:hover:bg-red-500/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setModalOpen(false);
+                  setShowConfirmDelete(true);
+                }}
+              >
+                <Trash2 size={16} />
+                <span className="hidden sm:inline">Excluir</span>
+              </button>
+            </>
+          }
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1 bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-xl border border-black/5 dark:border-white/5">
+            <span className="text-sm font-medium text-black/60 dark:text-white/60 shrink-0">Cor do Cartão:</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              {OPCOES_COR_CARTAO.map((opcao) => (
+                <button
+                  key={opcao.rotulo}
+                  type="button"
+                  className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 cursor-pointer shadow-sm ${cartao.cor === opcao.valor ? 'border-black/50 dark:border-white/50 scale-110' : 'border-transparent'}`}
+                  style={{ backgroundColor: opcao.valor || '#efe5d8' }}
+                  title={opcao.rotulo}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    atualizarCorCartao(idColuna, cartao.id, opcao.valor);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </Modal>
       )}
 
       {showConfirmDelete && !isClone && (
