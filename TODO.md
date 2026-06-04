@@ -6,6 +6,7 @@ Esta é a lista de ideias e features planejadas para escalar o Kanban Board Web 
 
 - [ ] Implementar Progress Web App (PWA) para instalação nativa
 - [ ] Criar um Tutorial/Onboarding explicando as funcionalidades (incluindo como importar modelos json, atalhos, etc)
+- [ ] Melhorar a acessibilidade do site
 
 ## Produtividade e UX
 - [ ] **Progressive Web App (PWA):** Transformar a aplicação em um PWA instalável, para que possa funcionar como um aplicativo nativo no celular e desktop (com suporte offline e manifest.json).
