@@ -1,5 +1,5 @@
 import { useStore } from '../../store/kanbanStore'
-import { Plus, RefreshCw, X, Database, Eye, EyeOff, Moon, Sun, Monitor, Settings, Keyboard, Volume2, VolumeX } from 'lucide-react'
+import { Plus, RefreshCw, X, Database, Eye, EyeOff, Moon, Sun, Monitor, ShieldCheck, Settings, Keyboard, Volume2, VolumeX } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useRef, useCallback } from 'react'
 import { useClickOutside } from '../../hooks/useClickOutside'
@@ -8,8 +8,9 @@ import RadioPlayer from '../ui/RadioPlayer'
 
 export default function Header({
   onToggleTema,
-  onShowClearOptions,
+  onShowClearDialog,
   onShowBackupOptions,
+  onShowSecurityOptions,
   onShowCheatSheet,
 }) {
   const isPrivacyMode = useStore((state) => state.isPrivacyMode)
@@ -50,7 +51,7 @@ export default function Header({
 
         {/* Limpar Quadro */}
         <HeaderButton
-          onClick={onShowClearOptions}
+          onClick={onShowClearDialog}
           icon={<RefreshCw size={18} />}
           label="Limpar Quadro"
           hoverClassName="hover:text-[var(--color-brand-terracotta)] hover:bg-[var(--color-brand-terracotta)]/10"
@@ -101,7 +102,18 @@ export default function Header({
                     className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 hover:text-[var(--color-brand-sage)] transition-colors cursor-pointer"
                   >
                     <Database size={16} />
-                    <span>Dados e Segurança</span>
+                    <span>Gestão de Dados</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu(false);
+                      onShowSecurityOptions();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 hover:text-blue-500 transition-colors cursor-pointer"
+                  >
+                    <ShieldCheck size={16} />
+                    <span>Segurança do Quadro</span>
                   </button>
 
                   <button

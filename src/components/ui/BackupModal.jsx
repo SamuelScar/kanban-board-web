@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Download, Upload, FileJson, Kanban, FileText, AlertTriangle, CheckCircle2, Lock, KeyRound, ShieldCheck, ShieldAlert } from 'lucide-react'
+import { X, Download, Upload, FileJson, Kanban, FileText, AlertTriangle, CheckCircle2, Lock, KeyRound, ShieldCheck, ShieldAlert, LayoutTemplate } from 'lucide-react'
 import { useStore } from '../../store/kanbanStore'
 import { exportarNativo, exportarTrello, exportarTexto, processarArquivoImportacao } from '../../utils/backupUtils'
 import { STORAGE_KEYS } from '../../constants/storage'
 
-export default function BackupModal({ isOpen, onClose }) {
+export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
   const [activeTab, setActiveTab] = useState('exportar')
   const [importStatus, setImportStatus] = useState(null)
   const [importError, setImportError] = useState('')
@@ -17,15 +17,19 @@ export default function BackupModal({ isOpen, onClose }) {
   const [temSenha, setTemSenha] = useState(false)
   
   const colunas = useStore(state => state.colunas)
+  const templatePadrao = useStore(state => state.templatePadrao)
   const importarDados = useStore(state => state.importarDados)
   const definirSenha = useStore(state => state.definirSenha)
   const removerSenha = useStore(state => state.removerSenha)
+  const salvarTemplatePadrao = useStore(state => state.salvarTemplatePadrao)
+  const removerTemplatePadrao = useStore(state => state.removerTemplatePadrao)
 
   useEffect(() => {
     if (isOpen) {
+      if (mode === 'dados') setActiveTab('exportar')
       setTemSenha(!!sessionStorage.getItem(STORAGE_KEYS.SENHA_SESSAO))
     }
-  }, [isOpen])
+  }, [isOpen, mode])
 
   if (!isOpen) return null
 
@@ -103,16 +107,19 @@ export default function BackupModal({ isOpen, onClose }) {
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Portabilidade e Segurança</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+              {mode === 'seguranca' ? 'Segurança do Quadro' : 'Gestão de Dados'}
+            </h2>
             <button onClick={onClose} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors">
               <X size={20} className="text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-black/5">
-            <button
-              onClick={() => setActiveTab('exportar')}
+          {/* Tabs - Ocultas no modo Segurança */}
+          {mode === 'dados' && (
+            <div className="flex border-b border-black/5 overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => setActiveTab('exportar')}
               className={`flex-1 py-4 text-xs sm:text-sm font-semibold transition-colors flex justify-center items-center gap-2 ${
                 activeTab === 'exportar' ? 'text-[var(--color-brand-terracotta)] border-b-2 border-[var(--color-brand-terracotta)]' : 'text-gray-500 hover:text-gray-900'
               }`}
@@ -128,18 +135,19 @@ export default function BackupModal({ isOpen, onClose }) {
               <Upload size={18} /> Importar
             </button>
             <button
-              onClick={() => setActiveTab('seguranca')}
-              className={`flex-1 py-4 text-xs sm:text-sm font-semibold transition-colors flex justify-center items-center gap-2 ${
-                activeTab === 'seguranca' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-900'
+              onClick={() => setActiveTab('template')}
+              className={`flex-1 py-4 px-2 whitespace-nowrap text-xs sm:text-sm font-semibold transition-colors flex justify-center items-center gap-2 ${
+                activeTab === 'template' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              <Lock size={18} /> Segurança
+              <LayoutTemplate size={18} /> Template
             </button>
-          </div>
+            </div>
+          )}
 
           {/* Content */}
-          <div className="p-6">
-            {activeTab === 'exportar' && (
+          <div className="p-6 max-h-[60vh] overflow-y-auto">
+            {mode === 'dados' && activeTab === 'exportar' && (
               <div className="space-y-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 font-medium">
                   Baixe seus dados para manter um backup seguro ou leve seu quadro para outra ferramenta.
@@ -177,7 +185,7 @@ export default function BackupModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {activeTab === 'importar' && (
+            {mode === 'dados' && activeTab === 'importar' && (
               <div className="space-y-6">
                 <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-xl p-4 flex gap-3 items-start">
                   <AlertTriangle size={20} className="text-orange-500 dark:text-orange-400 shrink-0 mt-0.5" />
@@ -226,7 +234,58 @@ export default function BackupModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {activeTab === 'seguranca' && (
+            {mode === 'dados' && activeTab === 'template' && (
+              <div className="space-y-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Crie o seu próprio modelo de quadro. Quando você usar a função <strong>"Restaurar Quadro"</strong>, nós recarregaremos exatamente o layout que você salvar aqui, em vez do modelo padrão do aplicativo.
+                </p>
+
+                {templatePadrao ? (
+                  <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                      <CheckCircle2 size={32} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-indigo-900 dark:text-indigo-100 text-lg">Template Ativo</h4>
+                      <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">Seu quadro possui um esqueleto customizado salvo.</p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        removerTemplatePadrao();
+                        alert("Template removido. O quadro voltará ao layout de fábrica quando restaurado.");
+                      }}
+                      className="mt-4 px-6 py-2.5 bg-white dark:bg-zinc-800 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 font-semibold rounded-lg shadow-sm border border-red-100 dark:border-red-500/20 transition-all cursor-pointer"
+                    >
+                      Remover Template Customizado
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                      <LayoutTemplate size={32} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 dark:text-white text-lg">Nenhum Template</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        O sistema está usando o layout de demonstração original (Backlog, Em andamento, Concluído).
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        salvarTemplatePadrao(colunas);
+                        alert("Quadro atual salvo como Template Padrão com sucesso!");
+                      }}
+                      className="mt-4 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <LayoutTemplate size={18} />
+                      Salvar Estrutura Atual como Template
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mode === 'seguranca' && (
               <div className="space-y-6">
                 {temSenha ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
@@ -298,10 +357,16 @@ export default function BackupModal({ isOpen, onClose }) {
                               <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg p-3 flex gap-2 items-start">
                                 <AlertTriangle size={16} className="text-red-500 dark:text-red-400 mt-0.5 shrink-0" />
                                 <p className="text-xs font-semibold text-red-700 dark:text-red-400 leading-tight">
-                                  ATENÇÃO: Qualquer pessoa que digitar essa senha na tela de bloqueio apagará TODOS os seus cartões instantaneamente, sem aviso prévio.
+                                  ATENÇÃO: A Senha de Pânico funciona como uma "senha falsa" na Tela de Bloqueio. Se você for coagido a destravar o seu quadro, digite a senha de pânico em vez da principal. O aplicativo vai aceitar o acesso, mas apagará TODOS os seus dados silenciosamente e irreversivelmente antes de abrir.
                                 </p>
                               </div>
-                              <div className="relative">
+                              <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg p-3 flex gap-2 items-start mt-2">
+                                <ShieldCheck size={16} className="text-blue-500 dark:text-blue-400 mt-0.5 shrink-0" />
+                                <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 leading-tight">
+                                  Lembre-se: Para usar o Modo Pânico, você deve primeiro definir a sua Senha Mestra verdadeira logo acima.
+                                </p>
+                              </div>
+                              <div className="relative mt-3">
                                 <input 
                                   type="password"
                                   required={usarSenhaPanico}

@@ -9,6 +9,7 @@ export const createPreferencesSlice = (set) => ({
   somAtivo: true,
   tempoFoco: 25,
   tempoPausa: 5,
+  templatePadrao: null,
 
   marcarAvisoEducacionalVisto: () => set({ avisoEducacionalVisto: true }),
   togglePrivacyMode: () => set(state => ({ isPrivacyMode: !state.isPrivacyMode })),
@@ -17,4 +18,6 @@ export const createPreferencesSlice = (set) => ({
   toggleSom: () => set(state => ({ somAtivo: !state.somAtivo })),
   definirTempoFoco: (minutos) => set({ tempoFoco: minutos }),
   definirTempoPausa: (minutos) => set({ tempoPausa: minutos }),
+  salvarTemplatePadrao: (colunas) => set({ templatePadrao: colunas }),
+  removerTemplatePadrao: () => set({ templatePadrao: null }),
 })

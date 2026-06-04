@@ -59,16 +59,27 @@ function App() {
   }
 
   // ── Estado dos Modais ────────────────────────────────────────
-  const [showClearOptions, setShowClearOptions] = useState(false)
-  const [showBackupOptions, setShowBackupOptions] = useState(false)
-  const [showCheatSheet, setShowCheatSheet] = useState(false)
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false)
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false)
+  const [backupModalMode, setBackupModalMode] = useState('dados')
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false)
+
+  const abrirModalDados = () => {
+    setBackupModalMode('dados')
+    setIsBackupModalOpen(true)
+  }
+
+  const abrirModalSeguranca = () => {
+    setBackupModalMode('seguranca')
+    setIsBackupModalOpen(true)
+  }
 
   // ── Atalhos de Teclado ───────────────────────────────────────
   useKeyboardShortcuts({
     atalhosAtivos,
     onTogglePrivacy: togglePrivacyMode,
     onToggleTheme: handleToggleTema,
-    onShowHelp: () => setShowCheatSheet(true),
+    onShowHelp: () => setIsCheatSheetOpen(true),
     onFocusNewColumn: () => {
       const btn = document.querySelector('[data-new-column-btn]')
       if (btn) btn.focus()
@@ -108,13 +119,6 @@ function App() {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--color-brand-sand)] opacity-15 blur-[120px] pointer-events-none" />
       <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[50%] rounded-full bg-[var(--color-brand-sage)] opacity-15 blur-[100px] pointer-events-none" />
       
-      <Header
-        onToggleTema={handleToggleTema}
-        onShowClearOptions={() => setShowClearOptions(true)}
-        onShowBackupOptions={() => setShowBackupOptions(true)}
-        onShowCheatSheet={() => setShowCheatSheet(true)}
-      />
-
       <AnimatePresence>
         {erroRecuperacao && (
           <motion.div 
@@ -136,7 +140,14 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* Main Board Area */}
+      <Header 
+        onToggleTema={handleToggleTema}
+        onShowClearDialog={() => setIsClearDialogOpen(true)}
+        onShowBackupOptions={abrirModalDados}
+        onShowSecurityOptions={abrirModalSeguranca}
+        onShowCheatSheet={() => setIsCheatSheetOpen(true)}
+      />
+
       <main className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-8 pb-8">
         <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <Board />
@@ -149,21 +160,22 @@ function App() {
       </footer>
       
       <ClearBoardDialog 
-        isOpen={showClearOptions}
-        onClose={() => setShowClearOptions(false)}
+        isOpen={isClearDialogOpen} 
+        onClose={() => setIsClearDialogOpen(false)} 
       />
       
       <BackupModal 
-        isOpen={showBackupOptions}
-        onClose={() => setShowBackupOptions(false)}
+        isOpen={isBackupModalOpen} 
+        mode={backupModalMode}
+        onClose={() => setIsBackupModalOpen(false)} 
       />
       
       <EducationalModal />
       <AutoLockManager />
       
       <CheatSheetModal 
-        isOpen={showCheatSheet}
-        onClose={() => setShowCheatSheet(false)}
+        isOpen={isCheatSheetOpen}
+        onClose={() => setIsCheatSheetOpen(false)}
       />
       
       <PomodoroWidget />

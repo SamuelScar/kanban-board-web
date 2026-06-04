@@ -145,8 +145,8 @@ export const createBoardSlice = (set) => ({
     tarefaAtivaId: null
   })),
 
-  restaurarPadrao: () => set(() => ({
-    ...criarQuadroInicial(),
+  restaurarPadrao: () => set((state) => ({
+    colunas: state.templatePadrao ? JSON.parse(JSON.stringify(state.templatePadrao)) : criarQuadroInicial().colunas,
     tarefaAtivaId: null
   })),
 

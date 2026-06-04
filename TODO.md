@@ -10,7 +10,7 @@ Esta é a lista de ideias e features planejadas para escalar o Kanban Board Web 
 ## Imersão e Personalização
 - [x] **Efeitos sonoros base:** Feedback de áudio (Web Audio API) ao arrastar/soltar cartões e concluir Pomodoro, incluindo controle global de mute.
 - [x] **Efeitos sonoros avançados:** Adicionar sons para outras interações secundárias (ex: apagar cartão, criar coluna) e explorar novas texturas/pacotes sonoros.
-- [ ] **Adição de música:** Player embutido opcional com faixas de foco (Lo-Fi, Ambiente) para melhorar a concentração durante o uso da ferramenta.
+- [x] **Adição de música:** Player embutido opcional com faixas de foco (Lo-Fi, Ambiente) para melhorar a concentração durante o uso da ferramenta.
 - [x] **Sistema de Temas Avançado:** Adicionar suporte a Dark Mode detectando o sistema e permitindo a troca manual na interface. (Futuro: criação de temas personalizados)
 - [ ] **Template Padrão Customizável:** Permitir que o usuário defina um arquivo JSON próprio como o seu "Layout Padrão". Ao usar a função "Restaurar Quadro", o Kanban recarregará essa estrutura salva em vez do Backlog original do app (se o cache for limpo, volta ao original).
 

@@ -32,7 +32,8 @@ export const kanbanSchema = z.object({
   tempoPausa: z.number().min(1).max(60).optional().default(5),
   radioVolume: z.number().optional().default(0.3),
   currentStationIndex: z.number().optional().default(0),
-  radioStatus: z.enum(['idle', 'loading', 'playing', 'error']).optional().default('idle')
+  radioStatus: z.enum(['idle', 'loading', 'playing', 'error']).optional().default('idle'),
+  templatePadrao: z.array(z.any()).nullable().optional().default(null)
 })
 
 // ── Motor de Storage Customizado ───────────────────────────────
