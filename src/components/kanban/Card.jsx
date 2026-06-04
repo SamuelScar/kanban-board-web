@@ -334,12 +334,15 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
 
       {modalOpen && !isClone && (
         <Modal
-          titulo="Editar descrição"
-          subtitulo="Edição rápida"
-          descricaoTexto={`Cartão: "${cartao.titulo}"`}
+          titulo={cartao.titulo}
+          subtitulo="Editar Cartão"
+          isTituloEditavel={true}
           valorInicial={cartao.descricao || ''}
           onClose={() => setModalOpen(false)}
-          onSave={(novaDescricao) => {
+          onSave={(novaDescricao, novoTitulo) => {
+            if (novoTitulo && novoTitulo.trim() !== cartao.titulo) {
+              atualizarTituloCartao(idColuna, cartao.id, novoTitulo.trim());
+            }
             atualizarDescricaoCartao(idColuna, cartao.id, novaDescricao)
             setModalOpen(false)
           }}

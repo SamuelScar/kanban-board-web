@@ -32,4 +32,4 @@ Esta é a lista de ideias e features planejadas para escalar o Kanban Board Web 
 ## Escalabilidade e Colaboração
 - [x] **Sincronização com File System API:** (Futuro) Em vez de usar apenas o `localStorage` (que é volátil), pedir permissão ao usuário para salvar/sincronizar o arquivo JSON diretamente em uma pasta física no computador dele.
 - [ ] **Recuperação de Quarentena:** (Futuro) Criar uma interface avançada ou script para permitir que o usuário tente visualizar e recuperar o JSON corrompido que foi salvo no `localStorage` durante a falha do Zod.
-- [ ] **Livemode (Trabalho em Equipe):** Evoluir a ferramenta de `localStorage` para um backend em tempo real (ex: WebSockets / Socket.io / Firebase) para permitir múltiplos cursores e colaboração ao vivo.
+- [ ] **Livemode (Trabalho em Equipe):** Evoluir a ferramenta para um sistema colaborativo em tempo real usando **WebRTC** (para minimizar custos de servidor, usando um servidor de sinalização apenas para criar a conexão P2P) em conjunto com a biblioteca **Yjs** (CRDT) para facilitar a sincronização de estado e resolução de conflitos entre múltiplos cursores.

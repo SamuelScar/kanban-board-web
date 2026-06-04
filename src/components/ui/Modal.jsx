@@ -9,12 +9,15 @@ export default function Modal({
   subtitulo = "Edição",
   descricaoTexto = "",
   valorInicial = "",
+  isTituloEditavel = false,
+  tituloInicial = "",
   onClose,
   onSave,
   extraActions,
   children
 }) {
   const [valor, setValor] = useState(valorInicial)
+  const [valorTitulo, setValorTitulo] = useState(tituloInicial || titulo)
   const [activeTab, setActiveTab] = useState('editar')
 
   const handleCancel = (e) => {
@@ -24,7 +27,11 @@ export default function Modal({
 
   const handleConfirm = (e) => {
     e.preventDefault()
-    onSave(valor)
+    if (isTituloEditavel) {
+      onSave(valor, valorTitulo)
+    } else {
+      onSave(valor)
+    }
   }
 
   return createPortal(
@@ -48,9 +55,20 @@ export default function Modal({
           className="relative w-full max-w-3xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col gap-6 border border-black/5 dark:border-white/5"
         >
           <div className="flex justify-between items-start gap-4">
-            <div>
+            <div className="w-full">
               <p className="text-sm font-semibold tracking-wider text-[var(--color-brand-terracotta)] uppercase mb-1">{subtitulo}</p>
-              <h2 className="text-2xl font-bold text-black/90 dark:text-white/90">{titulo}</h2>
+              {isTituloEditavel ? (
+                <input 
+                  type="text" 
+                  value={valorTitulo}
+                  onChange={(e) => setValorTitulo(e.target.value)}
+                  className="text-2xl font-bold bg-transparent border-none outline-none focus:ring-2 focus:ring-[var(--color-brand-terracotta)]/40 rounded px-1 -ml-1 text-black/90 dark:text-white/90 w-full mb-1"
+                  placeholder="Título do cartão..."
+                  autoFocus={false}
+                />
+              ) : (
+                <h2 className="text-2xl font-bold text-black/90 dark:text-white/90">{titulo}</h2>
+              )}
               {descricaoTexto && (
                 <p className="text-sm text-black/50 dark:text-white/50 mt-1 italic">{descricaoTexto}</p>
               )}
