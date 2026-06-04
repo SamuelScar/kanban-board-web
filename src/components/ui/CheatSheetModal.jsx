@@ -19,7 +19,7 @@ export default function CheatSheetModal({ isOpen, onClose }) {
     { tecla: 'C', desc: 'Focar em "Nova Coluna"' },
     { tecla: 'P', desc: 'Ligar/Desligar Privacidade' },
     { tecla: 'T', desc: 'Trocar Tema Visual' },
-    { tecla: '?', desc: 'Abrir este menu de ajuda' },
+    { tecla: '? ou /', desc: 'Abrir este menu de ajuda' },
     { tecla: 'Esc', desc: 'Fechar janela aberta' }
   ]
 

@@ -24,6 +24,7 @@ export default function Board() {
           {provided.placeholder}
           
           <motion.button
+            data-new-column-btn
             whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.8)' }}
             whileTap={{ scale: 0.98 }}
             type="button"

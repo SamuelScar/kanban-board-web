@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useStore } from '../../store/kanbanStore'
 import { OPCOES_COR_CARTAO, clarearCorHexadecimal } from '../../utils'
@@ -31,8 +31,11 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
   const [showConfirmTimerSwitch, setShowConfirmTimerSwitch] = useState(false)
   const detailsRef = useRef(null)
   const colorBtnRef = useRef(null)
+  const menuRef = useRef(null)
 
-  useClickOutside(detailsRef, useCallback(() => {
+  const clickRefs = useMemo(() => [detailsRef, menuRef], [])
+
+  useClickOutside(clickRefs, useCallback(() => {
     setColorMenuOpen(false)
     setShowConfirmTimerSwitch(false)
   }, []))
@@ -231,6 +234,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
                   {colorMenuOpen && createPortal(
                     <AnimatePresence>
                       <motion.div
+                        ref={menuRef}
                         initial={{ opacity: 0, y: colorMenuPos.above ? 5 : -5, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: colorMenuPos.above ? 5 : -5, scale: 0.95 }}
@@ -244,6 +248,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
                         }}
                         className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-black/10 dark:border-white/10 p-2 flex gap-1 min-w-max"
                         onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
                       >
                         {OPCOES_COR_CARTAO.map((opcao) => (
                           <button
