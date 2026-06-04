@@ -8,14 +8,16 @@ import { useEffect } from 'react'
  * @param {React.RefObject} ref - Referência ao elemento que define a "área interna"
  * @param {Function} callback - Função chamada quando o clique é fora do ref
  */
-export function useClickOutside(ref, callback) {
+export function useClickOutside(refOrRefs, callback) {
   useEffect(() => {
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
+      const refs = Array.isArray(refOrRefs) ? refOrRefs : [refOrRefs]
+      const isOutside = refs.every(ref => ref.current && !ref.current.contains(e.target))
+      if (isOutside) {
         callback()
       }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [ref, callback])
+  }, [refOrRefs, callback])
 }

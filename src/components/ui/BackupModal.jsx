@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Download, Upload, FileJson, Kanban, FileText, AlertTriangle, CheckCircle2, Lock, KeyRound, ShieldCheck, ShieldAlert, LayoutTemplate } from 'lucide-react'
+import { X, Download, Upload, FileJson, Kanban, FileText, AlertTriangle, CheckCircle2, Lock, KeyRound, ShieldCheck, ShieldAlert, LayoutTemplate, HardDrive } from 'lucide-react'
 import { useStore } from '../../store/kanbanStore'
 import { exportarNativo, exportarTrello, exportarTexto, processarArquivoImportacao } from '../../utils/backupUtils'
+import { isFileSystemAccessSupported, iniciarVinculoArquivo, clearFileHandle } from '../../utils/fileSyncUtils'
 import { STORAGE_KEYS } from '../../constants/storage'
 
 export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
@@ -10,6 +11,7 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
   const [importStatus, setImportStatus] = useState(null)
   const [importError, setImportError] = useState('')
   const fileInputRef = useRef(null)
+  const templateFileInputRef = useRef(null)
   
   const [novaSenha, setNovaSenha] = useState('')
   const [senhaPanico, setSenhaPanico] = useState('')
@@ -23,6 +25,11 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
   const removerSenha = useStore(state => state.removerSenha)
   const salvarTemplatePadrao = useStore(state => state.salvarTemplatePadrao)
   const removerTemplatePadrao = useStore(state => state.removerTemplatePadrao)
+  
+  const syncStatus = useStore(state => state.syncStatus)
+  const syncFileName = useStore(state => state.syncFileName)
+  const setSyncState = useStore(state => state.setSyncState)
+  const desvincularSync = useStore(state => state.desvincularSync)
 
   useEffect(() => {
     if (isOpen) {
@@ -59,6 +66,24 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
     } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleTemplateFileSelect = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    try {
+      const colunasImportadas = await processarArquivoImportacao(file)
+      salvarTemplatePadrao(colunasImportadas)
+      alert("Template importado e salvo com sucesso!")
+    } catch (erro) {
+      console.error(erro)
+      alert(erro.message || 'Falha ao ler o arquivo de template.')
+    } finally {
+      if (templateFileInputRef.current) {
+        templateFileInputRef.current.value = ''
       }
     }
   }
@@ -141,6 +166,14 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
               }`}
             >
               <LayoutTemplate size={18} /> Template
+            </button>
+            <button
+              onClick={() => setActiveTab('sincronizacao')}
+              className={`flex-1 py-4 px-2 whitespace-nowrap text-xs sm:text-sm font-semibold transition-colors flex justify-center items-center gap-2 ${
+                activeTab === 'sincronizacao' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <HardDrive size={18} /> Sincronização Local
             </button>
             </div>
           )}
@@ -236,9 +269,23 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
 
             {mode === 'dados' && activeTab === 'template' && (
               <div className="space-y-6">
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                  Crie o seu próprio modelo de quadro. Quando você usar a função <strong>"Restaurar Quadro"</strong>, nós recarregaremos exatamente o layout que você salvar aqui, em vez do modelo padrão do aplicativo.
-                </p>
+                <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-4">
+                  <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-100 mb-2">Como criar seu próprio modelo?</h4>
+                  <ol className="text-xs text-indigo-800 dark:text-indigo-200 list-decimal pl-4 space-y-1.5 font-medium">
+                    <li>Edite as colunas do seu quadro principal (adicione, renomeie ou exclua) para criar a sua estrutura ideal.</li>
+                    <li>Volte nesta tela e clique em <strong>"Salvar Estrutura Atual"</strong>.</li>
+                    <li><em>Alternativa:</em> Se já tiver um modelo pronto, clique em <strong>"Importar de Arquivo (.json)"</strong>.</li>
+                    <li>Pronto! Sempre que usar a função "Limpar Quadro", o sistema carregará este seu modelo.</li>
+                  </ol>
+                </div>
+
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  className="hidden" 
+                  ref={templateFileInputRef}
+                  onChange={handleTemplateFileSelect}
+                />
 
                 {templatePadrao ? (
                   <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
@@ -249,15 +296,25 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
                       <h4 className="font-bold text-indigo-900 dark:text-indigo-100 text-lg">Template Ativo</h4>
                       <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">Seu quadro possui um esqueleto customizado salvo.</p>
                     </div>
-                    <button 
-                      onClick={() => {
-                        removerTemplatePadrao();
-                        alert("Template removido. O quadro voltará ao layout de fábrica quando restaurado.");
-                      }}
-                      className="mt-4 px-6 py-2.5 bg-white dark:bg-zinc-800 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 font-semibold rounded-lg shadow-sm border border-red-100 dark:border-red-500/20 transition-all cursor-pointer"
-                    >
-                      Remover Template Customizado
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4 w-full">
+                      <button 
+                        onClick={() => {
+                          if (confirm("Tem certeza que deseja remover o template customizado?")) {
+                            removerTemplatePadrao();
+                          }
+                        }}
+                        className="flex-1 px-4 py-2.5 bg-white dark:bg-zinc-800 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 font-semibold rounded-lg shadow-sm border border-red-100 dark:border-red-500/20 transition-all cursor-pointer"
+                      >
+                        Remover Template
+                      </button>
+                      <button 
+                        onClick={() => templateFileInputRef.current?.click()}
+                        className="flex-1 px-4 py-2.5 bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 font-semibold rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Upload size={18} />
+                        Importar (.json)
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="bg-gray-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
@@ -270,17 +327,103 @@ export default function BackupModal({ isOpen, onClose, mode = 'dados' }) {
                         O sistema está usando o layout de demonstração original (Backlog, Em andamento, Concluído).
                       </p>
                     </div>
-                    <button 
-                      onClick={() => {
-                        salvarTemplatePadrao(colunas);
-                        alert("Quadro atual salvo como Template Padrão com sucesso!");
-                      }}
-                      className="mt-4 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all cursor-pointer flex items-center gap-2"
-                    >
-                      <LayoutTemplate size={18} />
-                      Salvar Estrutura Atual como Template
-                    </button>
+                    
+                    <div className="flex flex-col gap-3 mt-4 w-full px-2 sm:px-6">
+                      <button 
+                        onClick={() => {
+                          salvarTemplatePadrao(colunas);
+                          alert("Quadro atual salvo como Template Padrão com sucesso!");
+                        }}
+                        className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <LayoutTemplate size={18} />
+                        Salvar Estrutura Atual
+                      </button>
+                      
+                      <button 
+                        onClick={() => templateFileInputRef.current?.click()}
+                        className="w-full py-2.5 bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 font-semibold rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Upload size={18} />
+                        Importar de Arquivo (.json)
+                      </button>
+                    </div>
                   </div>
+                )}
+              </div>
+            )}
+
+            {mode === 'dados' && activeTab === 'sincronizacao' && (
+              <div className="space-y-6">
+                {!isFileSystemAccessSupported() ? (
+                  <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-xl p-6 flex gap-3 items-start">
+                    <AlertTriangle size={24} className="text-orange-500 shrink-0" />
+                    <div>
+                      <h4 className="font-bold text-orange-900 dark:text-orange-100">Funcionalidade Bloqueada ou Não Suportada</h4>
+                      <p className="text-sm text-orange-800 dark:text-orange-300 mt-1">A File System Access API precisa estar ativada no seu navegador para isso funcionar. Ela é suportada nativamente no Google Chrome, Microsoft Edge e Opera. <strong>Atenção:</strong> Navegadores com foco extremo em privacidade (como o Brave) ou motores concorrentes (Firefox/Safari) bloqueiam essa funcionalidade de fábrica para impedir acesso direto ao seu computador.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      Vincule este quadro a um arquivo <code>.json</code> no seu computador. Todas as suas alterações no Kanban serão salvas automaticamente nele em tempo real.
+                    </p>
+
+                    {syncStatus !== 'desvinculado' ? (
+                      <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
+                        <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                          <CheckCircle2 size={32} />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-blue-900 dark:text-blue-100 text-lg">Arquivo Vinculado</h4>
+                          <p className="text-sm text-blue-700 dark:text-blue-300 mt-1 font-medium bg-white/50 dark:bg-black/20 px-3 py-1 rounded-md inline-block mt-2">
+                            {syncFileName}
+                          </p>
+                        </div>
+                        <button 
+                          onClick={async () => {
+                            if (confirm("Deseja parar de sincronizar com este arquivo? (Isso não apagará o arquivo físico)")) {
+                              await clearFileHandle();
+                              desvincularSync();
+                            }
+                          }}
+                          className="mt-4 px-6 py-2.5 bg-white dark:bg-zinc-800 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 font-semibold rounded-lg shadow-sm border border-red-100 dark:border-red-500/20 transition-all cursor-pointer"
+                        >
+                          Desvincular Arquivo
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
+                        <div className="w-16 h-16 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                          <HardDrive size={32} />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-900 dark:text-white text-lg">Sincronização Inativa</h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Seus dados estão sendo salvos apenas no cache temporário do navegador.
+                          </p>
+                        </div>
+                        
+                        <button 
+                          onClick={async () => {
+                            try {
+                              const handle = await iniciarVinculoArquivo();
+                              setSyncState(handle, handle.name, 'ativo');
+                              alert("Arquivo vinculado com sucesso! Tudo será salvo automaticamente a partir de agora.");
+                            } catch (e) {
+                              if (e.name !== 'AbortError') {
+                                alert("Erro ao tentar vincular arquivo: " + e.message);
+                              }
+                            }
+                          }}
+                          className="mt-4 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                        >
+                          <HardDrive size={18} />
+                          Vincular a um Arquivo no Computador
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}

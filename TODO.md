@@ -2,7 +2,13 @@
 
 Esta é a lista de ideias e features planejadas para escalar o Kanban Board Web para o próximo nível:
 
+## To Do
+
+- [ ] Implementar Progress Web App (PWA) para instalação nativa
+- [ ] Criar um Tutorial/Onboarding explicando as funcionalidades (incluindo como importar modelos json, atalhos, etc)
+
 ## Produtividade e UX
+- [ ] **Progressive Web App (PWA):** Transformar a aplicação em um PWA instalável, para que possa funcionar como um aplicativo nativo no celular e desktop (com suporte offline e manifest.json).
 - [x] **Atalhos de teclado:** Adicionar suporte a atalhos globais configuráveis (ex: focar "Nova coluna" com `C`, alternar temas com `T`, fechar modais com `Esc`).
 - [x] **Temporizador de tarefas (Pomodoro):** Integrar um timer diretamente nos cartões para focar em tempo de trabalho contínuo.
 - [ ] **Assistente de Inteligência Artificial:** Integrar IA para ajudar a quebrar tarefas grandes em subtarefas, sugerir melhorias de escopo ou priorizar o backlog.
@@ -24,6 +30,6 @@ Esta é a lista de ideias e features planejadas para escalar o Kanban Board Web 
 - [x] **Criptografia Local (Opcional):** Fornecer uma opção (toggle) nas configurações para criptografar os dados salvos usando uma senha fornecida pelo usuário (AES). Se ativado, pedir a senha ao abrir o app.
 
 ## Escalabilidade e Colaboração
-- [ ] **Sincronização com File System API:** (Futuro) Em vez de usar apenas o `localStorage` (que é volátil), pedir permissão ao usuário para salvar/sincronizar o arquivo JSON diretamente em uma pasta física no computador dele.
+- [x] **Sincronização com File System API:** (Futuro) Em vez de usar apenas o `localStorage` (que é volátil), pedir permissão ao usuário para salvar/sincronizar o arquivo JSON diretamente em uma pasta física no computador dele.
 - [ ] **Recuperação de Quarentena:** (Futuro) Criar uma interface avançada ou script para permitir que o usuário tente visualizar e recuperar o JSON corrompido que foi salvo no `localStorage` durante a falha do Zod.
-- [ ] **Livemode (Trabalho em Equipe):** Evoluir a ferramenta de `localStorage` para um backend em tempo real (ex: WebSockets / Socket.io / Firebase) para permitir múltiplos cursores e colaboração ao vivo.
+- [ ] **Livemode (Trabalho em Equipe):** Evoluir a ferramenta para um sistema colaborativo em tempo real usando **WebRTC** (para minimizar custos de servidor, usando um servidor de sinalização apenas para criar a conexão P2P) em conjunto com a biblioteca **Yjs** (CRDT) para facilitar a sincronização de estado e resolução de conflitos entre múltiplos cursores.

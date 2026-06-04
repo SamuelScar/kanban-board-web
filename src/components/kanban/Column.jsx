@@ -2,9 +2,10 @@ import { useStore } from '../../store/kanbanStore'
 import { formatarQuantidadeCartoes } from '../../utils'
 import { Draggable, Droppable } from '@hello-pangea/dnd'
 import Card, { CardBase } from './Card'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, MoreHorizontal, X } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
+import { useClickOutside } from '../../hooks/useClickOutside'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import { playPop, playSwoosh } from '../../utils/audio'
 
@@ -13,6 +14,12 @@ export default function Column({ coluna, index }) {
   const adicionarCartao = useStore((state) => state.adicionarCartao)
   const atualizarTituloColuna = useStore((state) => state.atualizarTituloColuna)
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const headerRef = useRef(null)
+
+  useClickOutside(useMemo(() => [headerRef], []), useCallback(() => {
+    setMobileMenuOpen(false)
+  }, []))
 
   const handleRemover = () => {
     playSwoosh()
@@ -34,7 +41,7 @@ export default function Column({ coluna, index }) {
   return (
     <Draggable draggableId={coluna.id} index={index}>
       {(provided, snapshot) => {
-        let className = 'flex flex-col flex-shrink-0 w-[320px] max-h-full bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-3xl p-4 shadow-xl shadow-black/5 transition-all duration-300';
+        let className = 'flex flex-col flex-shrink-0 w-[85vw] max-w-[320px] sm:w-[320px] max-h-full bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-3xl p-4 shadow-xl shadow-black/5 transition-all duration-300';
         if (snapshot.isDragging) {
           className += ' shadow-2xl scale-[1.02] bg-white/70 dark:bg-black/50 ring-4 ring-[var(--color-brand-terracotta)]/20 z-50';
         }
@@ -59,7 +66,7 @@ export default function Column({ coluna, index }) {
             {...provided.draggableProps}
             style={style}
           >
-          <header className="flex items-center justify-between px-2 pb-4 group" {...provided.dragHandleProps}>
+          <header ref={headerRef} className="flex items-center justify-between px-2 pb-4 group" {...provided.dragHandleProps}>
             <div className="flex-1 min-w-0 pr-4">
               <input
                 className="w-full text-[17px] font-semibold text-[var(--color-brand-text)] bg-transparent border-none outline-none focus:ring-2 focus:ring-[var(--color-brand-terracotta)]/40 rounded px-1 -mx-1 truncate"
@@ -72,16 +79,29 @@ export default function Column({ coluna, index }) {
               />
               <p className="text-xs font-medium text-black/40 dark:text-white/40 mt-0.5 ml-1">{formatarQuantidadeCartoes(coluna.cartoes.length)}</p>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              type="button"
-              className="text-black/20 dark:text-white/20 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-              onClick={() => setShowConfirmDelete(true)}
-              aria-label="Excluir coluna"
-            >
-              <Trash2 size={16} />
-            </motion.button>
+            
+            <div className="relative flex items-center gap-1">
+              <button 
+                type="button"
+                className={`text-black/40 dark:text-white/40 hover:text-black/70 p-2 rounded-full cursor-pointer transition-colors [@media(hover:hover)]:hidden ${mobileMenuOpen ? 'text-red-500 hover:text-red-600' : ''}`}
+                onClick={(e) => { e.stopPropagation(); setMobileMenuOpen(!mobileMenuOpen); }}
+              >
+                {mobileMenuOpen ? <X size={16} /> : <MoreHorizontal size={16} />}
+              </button>
+
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                type="button"
+                className={`text-black/20 dark:text-white/20 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-2 rounded-full transition-colors cursor-pointer 
+                  ${mobileMenuOpen ? 'flex opacity-100' : 'hidden opacity-0 [@media(hover:hover)]:flex [@media(hover:hover)]:group-hover:opacity-100'}
+                `}
+                onClick={(e) => { e.stopPropagation(); setShowConfirmDelete(true); setMobileMenuOpen(false); }}
+                aria-label="Excluir coluna"
+              >
+                <Trash2 size={16} />
+              </motion.button>
+            </div>
           </header>
 
           <Droppable 

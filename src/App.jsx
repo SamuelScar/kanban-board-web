@@ -15,6 +15,7 @@ import CheatSheetModal from './components/ui/CheatSheetModal'
 import PomodoroWidget from './components/ui/PomodoroWidget'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { playPluck, playDrop } from './utils/audio'
+import { getFileHandle, verificarPermissao, salvarNoArquivoFs } from './utils/fileSyncUtils'
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 
@@ -33,6 +34,40 @@ function App() {
   const definirTema = useStore(state => state.definirTema)
 
   const atalhosAtivos = useStore(state => state.atalhosAtivos)
+
+  // ── Sincronização de Arquivo Físico ───────────────────────────
+  const colunasParaSync = useStore(state => state.colunas)
+  const syncFileHandle = useStore(state => state.syncFileHandle)
+  const syncStatus = useStore(state => state.syncStatus)
+  const setSyncState = useStore(state => state.setSyncState)
+  const setSyncStatus = useStore(state => state.setSyncStatus)
+
+  useEffect(() => {
+    // Resgata o handle do arquivo no carregamento inicial
+    getFileHandle().then(async (handle) => {
+      if (handle) {
+        const hasPermission = await verificarPermissao(handle, false)
+        setSyncState(handle, handle.name, hasPermission ? 'ativo' : 'pausado_permissao')
+      }
+    }).catch(console.error)
+  }, [setSyncState])
+
+  useEffect(() => {
+    // Auto-save com debounce de 1 segundo
+    if (syncStatus === 'ativo' && syncFileHandle) {
+      const timeoutId = setTimeout(async () => {
+        try {
+          await salvarNoArquivoFs(syncFileHandle, JSON.stringify(colunasParaSync, null, 2))
+        } catch (err) {
+          console.error("Erro na sincronização contínua:", err)
+          if (err.name === 'NotAllowedError') {
+            setSyncStatus('pausado_permissao')
+          }
+        }
+      }, 1000)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [colunasParaSync, syncFileHandle, syncStatus, setSyncStatus])
 
   // ── Tema ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -150,7 +185,7 @@ function App() {
         onShowCheatSheet={() => setIsCheatSheetOpen(true)}
       />
 
-      <main className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-8 pb-8">
+      <main className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-4 md:px-8 pb-4 md:pb-8">
         <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <Board />
         </DragDropContext>
