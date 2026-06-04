@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Download, Upload, FileJson, Kanban, FileText, AlertTriangle, CheckCircle2, Lock, KeyRound, ShieldCheck, ShieldAlert } from 'lucide-react'
 import { useStore } from '../../store/kanbanStore'
 import { exportarNativo, exportarTrello, exportarTexto, processarArquivoImportacao } from '../../utils/backupUtils'
+import { STORAGE_KEYS } from '../../constants/storage'
 
 export default function BackupModal({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('exportar')
@@ -22,7 +23,7 @@ export default function BackupModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
-      setTemSenha(!!sessionStorage.getItem("kanban_senha"))
+      setTemSenha(!!sessionStorage.getItem(STORAGE_KEYS.SENHA_SESSAO))
     }
   }, [isOpen])
 

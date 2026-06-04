@@ -6,6 +6,7 @@ import { Trash2, Plus } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import ConfirmDialog from '../ui/ConfirmDialog'
+import { playPop, playSwoosh } from '../../utils/audio'
 
 export default function Column({ coluna, index }) {
   const removerColuna = useStore((state) => state.removerColuna)
@@ -14,6 +15,7 @@ export default function Column({ coluna, index }) {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
   const handleRemover = () => {
+    playSwoosh()
     removerColuna(coluna.id)
     setShowConfirmDelete(false)
   }
@@ -114,7 +116,7 @@ export default function Column({ coluna, index }) {
             whileTap={{ scale: 0.98 }}
             type="button"
             className="mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white/40 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-black/50 dark:text-white/50 hover:text-[var(--color-brand-terracotta)] text-sm font-medium transition-colors cursor-pointer border border-transparent hover:border-black/5 dark:hover:border-white/5 shadow-sm"
-            onClick={() => adicionarCartao(coluna.id, "")}
+            onClick={() => { playPop(); adicionarCartao(coluna.id, "") }}
             aria-label="Adicionar cartão"
           >
             <Plus size={16} />

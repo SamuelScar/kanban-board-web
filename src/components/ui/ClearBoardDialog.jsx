@@ -3,6 +3,7 @@ import { AlertTriangle, LayoutTemplate, Trash2, Eraser } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useState, useEffect } from 'react'
 import { useStore } from '../../store/kanbanStore'
+import { playSwoosh } from '../../utils/audio'
 
 export default function ClearBoardDialog({ isOpen, onClose }) {
   const [modo, setModo] = useState('cartoes') // 'cartoes' | 'tudo' | 'padrao'
@@ -52,6 +53,8 @@ export default function ClearBoardDialog({ isOpen, onClose }) {
   const handleConfirm = (e) => {
     e.preventDefault()
     e.stopPropagation()
+    
+    playSwoosh()
     
     if (modo === 'cartoes') limparCartoes();
     if (modo === 'tudo') limparTudo();

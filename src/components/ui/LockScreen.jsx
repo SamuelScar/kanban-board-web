@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../../store/kanbanStore'
 import { Lock, Unlock, AlertCircle, ShieldAlert } from 'lucide-react'
+import { TIMEOUTS } from '../../constants/storage'
 
 export default function LockScreen() {
   const [senha, setSenha] = useState('')
@@ -116,7 +117,7 @@ export default function LockScreen() {
                     className="absolute -bottom-6 left-0 text-xs text-red-500 flex items-center gap-1 font-medium"
                   >
                     <AlertCircle size={12} />
-                    Senha incorreta. {Math.max(0, 5 - tentativasFalhas)} tentativas restantes.
+                    Senha incorreta. {Math.max(0, TIMEOUTS.MAX_TENTATIVAS_SENHA - tentativasFalhas)} tentativas restantes.
                   </motion.div>
                 ) : null}
               </AnimatePresence>

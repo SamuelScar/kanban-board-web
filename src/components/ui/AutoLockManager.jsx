@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import { useStore } from '../../store/kanbanStore';
-
-// Tempo de inatividade antes de trancar: 5 minutos
-const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+import { STORAGE_KEYS, TIMEOUTS } from '../../constants/storage';
 
 export default function AutoLockManager() {
   const trancarSessao = useStore(state => state.trancarSessao);
@@ -16,10 +14,10 @@ export default function AutoLockManager() {
     };
 
     const checkInactivity = () => {
-      const temSenha = !!sessionStorage.getItem("kanban_senha");
+      const temSenha = !!sessionStorage.getItem(STORAGE_KEYS.SENHA_SESSAO);
       
       // Só tranca se houver uma sessão ativa de criptografia
-      if (temSenha && Date.now() - lastActivityTime >= INACTIVITY_TIMEOUT_MS) {
+      if (temSenha && Date.now() - lastActivityTime >= TIMEOUTS.AUTO_LOCK_MS) {
         trancarSessao();
       }
     };
@@ -31,8 +29,8 @@ export default function AutoLockManager() {
       window.addEventListener(event, resetTimer, { passive: true });
     });
 
-    // Checa a inatividade a cada 10 segundos para não sobrecarregar
-    intervalId = setInterval(checkInactivity, 10000);
+    // Checa a inatividade periodicamente para não sobrecarregar
+    intervalId = setInterval(checkInactivity, TIMEOUTS.INACTIVITY_CHECK_INTERVAL_MS);
 
     return () => {
       events.forEach(event => {

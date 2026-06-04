@@ -1,12 +1,16 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useStore } from '../../store/kanbanStore'
 import { OPCOES_COR_CARTAO, clarearCorHexadecimal } from '../../utils'
+import { TIMEOUTS } from '../../constants/storage'
 import { Draggable } from '@hello-pangea/dnd'
 import Modal from '../ui/Modal'
 import { Trash2, Palette, Timer } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import MarkdownRenderer from '../ui/MarkdownRenderer'
+import { useClickOutside } from '../../hooks/useClickOutside'
+import { playSwoosh } from '../../utils/audio'
 
 export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
   const atualizarTituloCartao = useStore((state) => state.atualizarTituloCartao)
@@ -22,26 +26,22 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
   
   const [modalOpen, setModalOpen] = useState(false)
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
+  const [colorMenuPos, setColorMenuPos] = useState({ top: 0, right: 0, above: true })
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [showConfirmTimerSwitch, setShowConfirmTimerSwitch] = useState(false)
   const detailsRef = useRef(null)
+  const colorBtnRef = useRef(null)
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (detailsRef.current && !detailsRef.current.contains(event.target)) {
-        setColorMenuOpen(false)
-        setShowConfirmTimerSwitch(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [detailsRef])
+  useClickOutside(detailsRef, useCallback(() => {
+    setColorMenuOpen(false)
+    setShowConfirmTimerSwitch(false)
+  }, []))
 
   useEffect(() => {
     if (showConfirmTimerSwitch) {
       const timer = setTimeout(() => {
         setShowConfirmTimerSwitch(false)
-      }, 4000)
+      }, TIMEOUTS.TIMER_SWITCH_DISMISS_MS)
       return () => clearTimeout(timer)
     }
   }, [showConfirmTimerSwitch])
@@ -56,6 +56,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
   }
 
   const handleConfirmDelete = () => {
+    playSwoosh()
     removerCartao(idColuna, cartao.id)
     setShowConfirmDelete(false)
   }
@@ -206,21 +207,42 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
                 
                 <div ref={detailsRef} className="relative">
                   <button
+                    ref={colorBtnRef}
                     type="button"
                     className="p-1.5 text-black/40 dark:text-white/40 hover:text-black/80 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded transition-colors cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); setColorMenuOpen(!colorMenuOpen); }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (colorBtnRef.current) {
+                        const rect = colorBtnRef.current.getBoundingClientRect()
+                        const above = rect.top > 60
+                        setColorMenuPos({
+                          top: above ? rect.top - 4 : rect.bottom + 4,
+                          right: window.innerWidth - rect.right,
+                          above,
+                        })
+                      }
+                      setColorMenuOpen(!colorMenuOpen)
+                    }}
                     aria-label="Escolher cor do cartão"
                   >
                     <Palette size={14} />
                   </button>
                   
-                  <AnimatePresence>
-                    {colorMenuOpen && (
+                  {colorMenuOpen && createPortal(
+                    <AnimatePresence>
                       <motion.div
-                        initial={{ opacity: 0, y: -5, scale: 0.95 }}
+                        initial={{ opacity: 0, y: colorMenuPos.above ? 5 : -5, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -5, scale: 0.95 }}
-                        className="absolute right-0 bottom-full mb-1 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-black/10 dark:border-white/10 p-2 flex gap-1 z-50 min-w-max"
+                        exit={{ opacity: 0, y: colorMenuPos.above ? 5 : -5, scale: 0.95 }}
+                        style={{
+                          position: 'fixed',
+                          right: colorMenuPos.right,
+                          ...(colorMenuPos.above
+                            ? { bottom: window.innerHeight - colorMenuPos.top }
+                            : { top: colorMenuPos.top }),
+                          zIndex: 9999,
+                        }}
+                        className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-black/10 dark:border-white/10 p-2 flex gap-1 min-w-max"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {OPCOES_COR_CARTAO.map((opcao) => (
@@ -234,8 +256,9 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
                           />
                         ))}
                       </motion.div>
-                    )}
-                  </AnimatePresence>
+                    </AnimatePresence>,
+                    document.body
+                  )}
                 </div>
                 <button
                   type="button"
@@ -284,17 +307,6 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
             atualizarDescricaoCartao(idColuna, cartao.id, novaDescricao)
             setModalOpen(false)
           }}
-        />
-      )}
-
-      {showConfirmDelete && !isClone && (
-        <ConfirmDialog 
-          isOpen={showConfirmDelete}
-          titulo="Excluir cartão?"
-          descricao="Essa ação não pode ser desfeita."
-          textoConfirmar="Excluir"
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setShowConfirmDelete(false)}
         />
       )}
 

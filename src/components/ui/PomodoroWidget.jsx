@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../../store/kanbanStore'
 import { Play, Pause, X, Coffee, Brain, RotateCcw } from 'lucide-react'
-import { playBell, playPluck } from '../../utils/audio'
+import { playBell, playPluck, playSwoosh, playTick } from '../../utils/audio'
 
 const FOCUS_TIME = 25 * 60
 const BREAK_TIME = 5 * 60
@@ -110,6 +110,7 @@ export default function PomodoroWidget() {
   }
   
   const handleClose = () => {
+    playSwoosh()
     limparTarefaAtiva()
     setIsRunning(false)
     setMode('focus')
@@ -117,6 +118,7 @@ export default function PomodoroWidget() {
   }
   
   const handleReset = () => {
+    playTick()
     setIsRunning(false)
     setTimeLeft(mode === 'focus' ? FOCUS_TIME : BREAK_TIME)
   }
