@@ -1,8 +1,8 @@
 export const ESTACOES_RADIO = [
   {
-    nome: "Lofi Focus",
-    url: "https://stream.zeno.fm/f3wvbbqmdg8uv",
-    descricao: "Batidas Lofi suaves para concentração profunda"
+    nome: "Deep Focus",
+    url: "https://ice1.somafm.com/defcon-128-mp3",
+    descricao: "Música instrumental e beats para hiperfoco"
   },
   {
     nome: "Groove Salad",
