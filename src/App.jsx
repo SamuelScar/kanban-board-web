@@ -11,6 +11,7 @@ import EducationalModal from './components/ui/EducationalModal'
 import BackupModal from './components/ui/BackupModal'
 import LockScreen from './components/ui/LockScreen'
 import AutoLockManager from './components/ui/AutoLockManager'
+import TutorialManager from './components/ui/TutorialManager'
 import CheatSheetModal from './components/ui/CheatSheetModal'
 import PomodoroWidget from './components/ui/PomodoroWidget'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
@@ -209,6 +210,7 @@ function App() {
       
       <EducationalModal />
       <AutoLockManager />
+      <TutorialManager />
       
       <CheatSheetModal 
         isOpen={isCheatSheetOpen}

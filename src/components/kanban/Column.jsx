@@ -63,6 +63,7 @@ export default function Column({ coluna, index }) {
           <article
             className={className}
             ref={provided.innerRef}
+            data-tour={index === 0 ? "colunas" : undefined}
             {...provided.draggableProps}
             style={style}
           >
@@ -129,7 +130,7 @@ export default function Column({ coluna, index }) {
                 {...providedDrop.droppableProps}
               >
                 {coluna.cartoes.map((cartao, idx) => (
-                  <Card key={cartao.id} cartao={cartao} index={idx} idColuna={coluna.id} />
+                  <Card key={cartao.id} cartao={cartao} index={idx} idColuna={coluna.id} isFirst={index === 0 && idx === 0} />
                 ))}
                 {providedDrop.placeholder}
               </div>

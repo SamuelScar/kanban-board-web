@@ -3,6 +3,7 @@
 
 export const createPreferencesSlice = (set) => ({
   avisoEducacionalVisto: false,
+  tutorialVisto: false,
   isPrivacyMode: false,
   tema: 'system',
   atalhosAtivos: true,
@@ -12,6 +13,7 @@ export const createPreferencesSlice = (set) => ({
   templatePadrao: null,
 
   marcarAvisoEducacionalVisto: () => set({ avisoEducacionalVisto: true }),
+  marcarTutorialVisto: () => set({ tutorialVisto: true }),
   togglePrivacyMode: () => set(state => ({ isPrivacyMode: !state.isPrivacyMode })),
   definirTema: (novoTema) => set({ tema: novoTema }),
   toggleAtalhos: () => set(state => ({ atalhosAtivos: !state.atalhosAtivos })),

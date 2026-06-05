@@ -6,7 +6,6 @@ Esta é a lista de funcionalidades do Kanban Board Web, dividida entre o que já
 
 **Produtividade e UX**
 - [ ] **Assistente de Inteligência Artificial:** Integrar IA para ajudar a quebrar tarefas grandes em subtarefas, sugerir melhorias de escopo ou priorizar o backlog.
-- [ ] **Tutorial/Onboarding:** Criar um tutorial explicando as funcionalidades (incluindo como importar modelos json, atalhos, etc).
 - [ ] **Acessibilidade:** Melhorar a acessibilidade do site para leitores de tela e navegação por teclado.
 
 **Escalabilidade e Colaboração**
@@ -18,6 +17,7 @@ Esta é a lista de funcionalidades do Kanban Board Web, dividida entre o que já
 ## ✅ Funcionalidades Concluídas
 
 **Produtividade e UX**
+- [x] **Tutorial/Onboarding:** Criar um tutorial explicando as funcionalidades usando driver.js.
 - [x] **Progressive Web App (PWA):** Transformar a aplicação em um PWA instalável, para que possa funcionar como um aplicativo nativo no celular e desktop (com suporte offline e manifest.json).
 - [x] **Atalhos de teclado:** Adicionar suporte a atalhos globais configuráveis (ex: focar "Nova coluna" com `C`, alternar temas com `T`, fechar modais com `Esc`).
 - [x] **Temporizador de tarefas (Pomodoro):** Integrar um timer diretamente nos cartões para focar em tempo de trabalho contínuo.

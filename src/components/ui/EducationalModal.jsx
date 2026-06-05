@@ -52,7 +52,7 @@ export default function EducationalModal() {
               <div className="bg-[var(--color-brand-sage)]/20 rounded-xl p-4 text-left flex gap-3 items-start border border-black/5 dark:border-white/5">
                 <Info size={18} className="text-[var(--color-brand-sage)] shrink-0 mt-0.5" />
                 <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Em breve adicionaremos uma opção para exportar seus dados. Por enquanto, utilize este quadro com responsabilidade em máquinas seguras.
+                  Para sua segurança, você pode exportar manualmente seus dados (Backup JSON) ou habilitar a <strong className="font-bold text-gray-900 dark:text-white/90">Sincronização em Tempo Real</strong> com um arquivo no seu computador pelo menu de Configurações no cabeçalho.
                 </p>
               </div>
             </div>

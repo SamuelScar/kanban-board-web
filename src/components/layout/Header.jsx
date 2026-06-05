@@ -66,7 +66,7 @@ export default function Header({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 md:gap-2">
+      <div data-tour="ferramentas" className="flex items-center gap-1 md:gap-2">
         {/* Ações Desktop */}
         <div className="hidden md:flex items-center gap-1 md:gap-2">
           {/* Privacidade */}
