@@ -22,6 +22,7 @@ const colunaSchema = z.object({
 export const kanbanSchema = z.object({
   colunas: z.array(colunaSchema).optional(),
   avisoEducacionalVisto: z.boolean().optional().default(false),
+  tutorialVisto: z.boolean().optional().default(false),
   isLocked: z.boolean().optional().default(false),
   encryptedData: z.string().nullable().optional().default(null),
   isPrivacyMode: z.boolean().optional().default(false),

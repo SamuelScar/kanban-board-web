@@ -12,7 +12,7 @@ import MarkdownRenderer from '../ui/MarkdownRenderer'
 import { useClickOutside } from '../../hooks/useClickOutside'
 import { playSwoosh } from '../../utils/audio'
 
-export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
+export function CardBase({ cartao, idColuna, provided, snapshot, isClone, isFirst }) {
   const atualizarTituloCartao = useStore((state) => state.atualizarTituloCartao)
   const atualizarCorCartao = useStore((state) => state.atualizarCorCartao)
   const removerCartao = useStore((state) => state.removerCartao)
@@ -120,6 +120,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
     <>
       <article
         ref={provided.innerRef}
+        data-tour={isFirst ? "cartao" : undefined}
         {...provided.draggableProps}
         {...provided.dragHandleProps}
         style={dynamicStyle}
@@ -414,7 +415,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone }) {
   )
 }
 
-export default function Card({ cartao, index, idColuna }) {
+export default function Card({ cartao, index, idColuna, isFirst }) {
   return (
     <Draggable draggableId={cartao.id} index={index}>
       {(provided, snapshot) => (
@@ -424,6 +425,7 @@ export default function Card({ cartao, index, idColuna }) {
           provided={provided} 
           snapshot={snapshot} 
           isClone={false} 
+          isFirst={isFirst}
         />
       )}
     </Draggable>
