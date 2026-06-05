@@ -80,7 +80,12 @@ export default function Column({ coluna, index }) {
               <p className="text-xs font-medium text-black/40 dark:text-white/40 mt-0.5 ml-1">{formatarQuantidadeCartoes(coluna.cartoes.length)}</p>
             </div>
             
-            <div className="relative flex items-center gap-1">
+            <div 
+              className="relative flex items-center gap-1"
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
               <button 
                 type="button"
                 className={`text-black/40 dark:text-white/40 hover:text-black/70 p-2 rounded-full cursor-pointer transition-colors [@media(hover:hover)]:hidden ${mobileMenuOpen ? 'text-red-500 hover:text-red-600' : ''}`}
