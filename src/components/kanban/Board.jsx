@@ -13,7 +13,7 @@ export default function Board({ scrollRef, onMouseDown, onMouseLeave, onMouseUp,
     <Droppable droppableId="board" type="column" direction="horizontal">
       {(provided) => (
           <section
-            className="flex gap-4 md:gap-6 h-full items-start overflow-x-auto overflow-y-hidden px-4 md:px-8 cursor-default"
+            className="flex-1 min-h-0 flex gap-4 md:gap-6 h-full items-start overflow-x-auto overflow-y-hidden px-4 md:px-8 cursor-default"
             aria-label="Quadro Kanban"
             ref={(el) => {
               provided.innerRef(el);
