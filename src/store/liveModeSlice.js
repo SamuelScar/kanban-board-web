@@ -1,7 +1,7 @@
 export const createLiveModeSlice = (set) => ({
   liveModeStatus: 'offline', // offline, connecting, online
   liveModeRoom: null,
-  liveModeServerUrl: localStorage.getItem('kanban_live_server') || 'ws://localhost:10000',
+  liveModeServerUrl: localStorage.getItem('kanban_live_server') || 'wss://kanban-signaling.onrender.com',
 
   setLiveModeState: (status, roomName) => set({ 
     liveModeStatus: status, 
