@@ -1,5 +1,5 @@
 import { useStore } from '../../store/kanbanStore'
-import { Plus, RefreshCw, X, Database, Eye, EyeOff, Moon, Sun, Monitor, ShieldCheck, Settings, Keyboard, Volume2, VolumeX, Cloud, AlertCircle } from 'lucide-react'
+import { Plus, RefreshCw, X, Database, Eye, EyeOff, Moon, Sun, Monitor, ShieldCheck, Settings, Keyboard, Volume2, VolumeX, Cloud, AlertCircle, Users } from 'lucide-react'
 import { verificarPermissao } from '../../utils/fileSyncUtils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useRef, useCallback } from 'react'
@@ -13,6 +13,7 @@ export default function Header({
   onShowBackupOptions,
   onShowSecurityOptions,
   onShowCheatSheet,
+  onShowLiveMode,
 }) {
   const isPrivacyMode = useStore((state) => state.isPrivacyMode)
   const togglePrivacyMode = useStore((state) => state.togglePrivacyMode)
@@ -25,6 +26,9 @@ export default function Header({
   const syncStatus = useStore(state => state.syncStatus)
   const syncFileHandle = useStore(state => state.syncFileHandle)
   const setSyncStatus = useStore(state => state.setSyncStatus)
+
+  const liveModeStatus = useStore(state => state.liveModeStatus)
+  const liveModeRoom = useStore(state => state.liveModeRoom)
 
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const settingsMenuRef = useRef(null)
@@ -76,6 +80,26 @@ export default function Header({
             activeClassName="text-[var(--color-brand-terracotta)] bg-[var(--color-brand-terracotta)]/10"
             icon={isPrivacyMode ? <EyeOff size={18} /> : <Eye size={18} />}
             label="Privacidade"
+          />
+
+          {/* Live Mode */}
+          <HeaderButton
+            onClick={onShowLiveMode}
+            icon={
+              <div className="relative">
+                <Users size={18} />
+                {liveModeStatus === 'online' && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[var(--color-brand-bg)] animate-pulse" />
+                )}
+                {liveModeStatus === 'connecting' && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-500 rounded-full border-2 border-[var(--color-brand-bg)]" />
+                )}
+              </div>
+            }
+            label={liveModeStatus === 'online' ? `Live: ${liveModeRoom}` : "Live Mode P2P"}
+            hoverClassName={liveModeStatus === 'online' ? "text-green-600 bg-green-500/10" : "hover:text-blue-500 hover:bg-blue-500/10"}
+            active={liveModeStatus === 'online'}
+            activeClassName="text-green-600 bg-green-500/10 dark:text-green-400 dark:bg-green-500/20"
           />
 
           {/* Limpar Quadro */}
@@ -149,6 +173,22 @@ export default function Header({
                   {/* Itens visíveis apenas no mobile */}
                   <div className="md:hidden border-t border-black/5 dark:border-white/5 my-1"></div>
                   
+                  <button
+                    onClick={() => { setShowSettingsMenu(false); onShowLiveMode(); }}
+                    className={`md:hidden w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${liveModeStatus === 'online' ? 'text-green-600 bg-green-500/10 dark:text-green-400 dark:bg-green-500/20' : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 hover:text-blue-500'}`}
+                  >
+                    <div className="relative flex-shrink-0">
+                      <Users size={16} />
+                      {liveModeStatus === 'online' && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-zinc-800 animate-pulse" />
+                      )}
+                      {liveModeStatus === 'connecting' && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full border border-white dark:border-zinc-800" />
+                      )}
+                    </div>
+                    <span>{liveModeStatus === 'online' ? `Live: ${liveModeRoom}` : "Live Mode P2P"}</span>
+                  </button>
+
                   <button
                     onClick={() => { playSwitch(); togglePrivacyMode(); setShowSettingsMenu(false); }}
                     className={`md:hidden w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${isPrivacyMode ? 'text-[var(--color-brand-terracotta)] bg-[var(--color-brand-terracotta)]/10' : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'}`}

@@ -7,6 +7,7 @@ import { createSecuritySlice } from './securitySlice'
 import { createPreferencesSlice } from './preferencesSlice'
 import { createRadioSlice } from './radioSlice'
 import { createSyncSlice } from './syncSlice'
+import { createLiveModeSlice } from './liveModeSlice'
 
 /**
  * ── Store Composta (Zustand) ───────────────────────────────────
@@ -23,6 +24,7 @@ export const useStore = create(
       ...createPreferencesSlice(set),
       ...createRadioSlice(set),
       ...createSyncSlice(set, get),
+      ...createLiveModeSlice(set),
     }),
     {
       name: STORAGE_KEYS.ESTADO, // Mantem a mesma key de antes, entao os dados antigos devem carregar automaticamente!

@@ -14,6 +14,8 @@ import AutoLockManager from './components/ui/AutoLockManager'
 import TutorialManager from './components/ui/TutorialManager'
 import CheatSheetModal from './components/ui/CheatSheetModal'
 import PomodoroWidget from './components/ui/PomodoroWidget'
+import LiveModeModal from './components/ui/LiveModeModal'
+import { initLocalSyncObserver } from './store/liveModeSync'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { playPluck, playDrop } from './utils/audio'
 import { getFileHandle, verificarPermissao, salvarNoArquivoFs } from './utils/fileSyncUtils'
@@ -44,6 +46,9 @@ function App() {
   const setSyncStatus = useStore(state => state.setSyncStatus)
 
   useEffect(() => {
+    // Inicia o observador bidirecional do WebRTC
+    initLocalSyncObserver()
+    
     // Resgata o handle do arquivo no carregamento inicial
     getFileHandle().then(async (handle) => {
       if (handle) {
@@ -101,6 +106,7 @@ function App() {
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false)
   const [backupModalMode, setBackupModalMode] = useState('dados')
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false)
+  const [isLiveModeModalOpen, setIsLiveModeModalOpen] = useState(false)
 
   const abrirModalDados = () => {
     setBackupModalMode('dados')
@@ -184,6 +190,7 @@ function App() {
         onShowBackupOptions={abrirModalDados}
         onShowSecurityOptions={abrirModalSeguranca}
         onShowCheatSheet={() => setIsCheatSheetOpen(true)}
+        onShowLiveMode={() => setIsLiveModeModalOpen(true)}
       />
 
       <main className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-4 md:px-8 pb-4 md:pb-8">
@@ -215,6 +222,11 @@ function App() {
       <CheatSheetModal 
         isOpen={isCheatSheetOpen}
         onClose={() => setIsCheatSheetOpen(false)}
+      />
+
+      <LiveModeModal
+        isOpen={isLiveModeModalOpen}
+        onClose={() => setIsLiveModeModalOpen(false)}
       />
       
       <PomodoroWidget />
