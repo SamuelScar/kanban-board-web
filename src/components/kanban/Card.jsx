@@ -1,11 +1,11 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { useStore } from '../../store/kanbanStore'
 import { OPCOES_COR_CARTAO, clarearCorHexadecimal } from '../../utils'
 import { TIMEOUTS } from '../../constants/storage'
 import { Draggable } from '@hello-pangea/dnd'
 import Modal from '../ui/Modal'
-import { Trash2, Palette, Timer, MoreHorizontal, X } from 'lucide-react'
+import { Trash2, Palette, Timer, MoreHorizontal, X, GripVertical } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import MarkdownRenderer from '../ui/MarkdownRenderer'
@@ -19,10 +19,10 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone, isFirs
   const atualizarDescricaoCartao = useStore((state) => state.atualizarDescricaoCartao)
   const isPrivacyMode = useStore((state) => state.isPrivacyMode)
   
-  const tarefaAtivaId = useStore((state) => state.tarefaAtivaId)
+  const hasTarefaAtiva = useStore((state) => !!state.tarefaAtivaId)
+  const isAtiva = useStore((state) => state.tarefaAtivaId === cartao.id)
   const setTarefaAtiva = useStore((state) => state.setTarefaAtiva)
   const limparTarefaAtiva = useStore((state) => state.limparTarefaAtiva)
-  const isAtiva = tarefaAtivaId === cartao.id
   
   const [modalOpen, setModalOpen] = useState(false)
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
@@ -125,7 +125,8 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone, isFirs
         {...provided.dragHandleProps}
         style={dynamicStyle}
         onClick={handleCardClick}
-        className={`group relative flex flex-col gap-2 rounded-xl p-3.5 transition-all outline-none 
+        className={`group relative flex flex-col gap-2 rounded-xl p-3.5 outline-none 
+          ${!isDraggingItem && !isGhost ? 'transition-all' : ''}
           ${isGhost ? 'opacity-0' : 'opacity-100'}
           ${isDraggingItem ? 'z-50 shadow-2xl scale-105' : 'shadow-sm hover:shadow-md'}
           ${cartao.cor ? 'bg-[var(--cartao-superficie-light)] dark:bg-[var(--cartao-superficie-dark)]' : 'bg-white dark:bg-zinc-800'}
@@ -221,7 +222,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone, isFirs
                     e.stopPropagation(); 
                     if (isAtiva) {
                       limparTarefaAtiva();
-                    } else if (tarefaAtivaId) {
+                    } else if (hasTarefaAtiva) {
                       setShowConfirmTimerSwitch(true);
                     } else {
                       setTarefaAtiva(cartao.id);
@@ -302,18 +303,23 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone, isFirs
           </AnimatePresence>
         </div>
         
-        <input
-          className={`w-full text-[15px] font-medium leading-tight bg-transparent border-none outline-none rounded -ml-1 px-1 focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 truncate transition-all duration-300
-            ${cartao.cor ? 'text-[var(--cartao-texto-light)] dark:text-[var(--cartao-texto-dark)]' : 'text-black/80 dark:text-white/80'}
-            ${isPrivacyMode ? 'blur-sm hover:blur-none focus:blur-none' : ''}
-          `}
-          type="text"
-          value={cartao.titulo}
-          onChange={handleTituloChange}
-          onKeyDown={handleKeyDown}
-          maxLength={80}
-          aria-label="Título do cartão"
-        />
+        <div className="flex items-start justify-between gap-2">
+          <input
+            className={`flex-1 min-w-0 text-[15px] font-medium leading-tight bg-transparent border-none outline-none rounded -ml-1 px-1 focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 truncate transition-all duration-300
+              ${cartao.cor ? 'text-[var(--cartao-texto-light)] dark:text-[var(--cartao-texto-dark)]' : 'text-black/80 dark:text-white/80'}
+              ${isPrivacyMode ? 'blur-sm hover:blur-none focus:blur-none' : ''}
+            `}
+            type="text"
+            value={cartao.titulo}
+            onChange={handleTituloChange}
+            onKeyDown={handleKeyDown}
+            maxLength={80}
+            aria-label="Título do cartão"
+          />
+          <div className="md:hidden flex items-center justify-center p-2 -mt-1 -mr-1 text-black/30 dark:text-white/30 shrink-0 touch-none">
+            <GripVertical size={20} />
+          </div>
+        </div>
         
         {cartao.descricao ? (
           <div 
@@ -415,7 +421,7 @@ export function CardBase({ cartao, idColuna, provided, snapshot, isClone, isFirs
   )
 }
 
-export default function Card({ cartao, index, idColuna, isFirst }) {
+export default memo(function Card({ cartao, index, idColuna, isFirst }) {
   return (
     <Draggable draggableId={cartao.id} index={index}>
       {(provided, snapshot) => (
@@ -430,4 +436,4 @@ export default function Card({ cartao, index, idColuna, isFirst }) {
       )}
     </Draggable>
   )
-}
+})

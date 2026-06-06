@@ -10,7 +10,6 @@ Esta é a lista de funcionalidades do Kanban Board Web, dividida entre o que já
 
 **Escalabilidade e Colaboração**
 - [ ] **Recuperação de Quarentena:** Criar uma interface avançada ou script para permitir que o usuário tente visualizar e recuperar o JSON corrompido que foi salvo no `localStorage` durante a falha do Zod.
-- [ ] **Livemode (Trabalho em Equipe):** Evoluir a ferramenta para um sistema colaborativo em tempo real usando **WebRTC** em conjunto com **Yjs** (CRDT) para facilitar a sincronização de estado e resolução de conflitos entre múltiplos cursores.
 
 ---
 
@@ -40,3 +39,4 @@ Esta é a lista de funcionalidades do Kanban Board Web, dividida entre o que já
 
 **Escalabilidade e Colaboração**
 - [x] **Sincronização com File System API:** Pedir permissão ao usuário para salvar/sincronizar o arquivo JSON diretamente em uma pasta física no computador dele.
+- [x] **Livemode P2P (Trabalho em Equipe):** Sistema colaborativo em tempo real usando WebRTC e Yjs (CRDT) para sincronização de estado descentralizada.

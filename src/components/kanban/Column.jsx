@@ -2,14 +2,14 @@ import { useStore } from '../../store/kanbanStore'
 import { formatarQuantidadeCartoes } from '../../utils'
 import { Draggable, Droppable } from '@hello-pangea/dnd'
 import Card, { CardBase } from './Card'
-import { Trash2, Plus, MoreHorizontal, X } from 'lucide-react'
+import { Trash2, Plus, MoreHorizontal, X, GripHorizontal } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, memo } from 'react'
 import { useClickOutside } from '../../hooks/useClickOutside'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import { playPop, playSwoosh } from '../../utils/audio'
 
-export default function Column({ coluna, index }) {
+export default memo(function Column({ coluna, index }) {
   const removerColuna = useStore((state) => state.removerColuna)
   const adicionarCartao = useStore((state) => state.adicionarCartao)
   const atualizarTituloColuna = useStore((state) => state.atualizarTituloColuna)
@@ -67,8 +67,11 @@ export default function Column({ coluna, index }) {
             {...provided.draggableProps}
             style={style}
           >
-          <header ref={headerRef} className="flex items-center justify-between px-2 pb-4 group" {...provided.dragHandleProps}>
-            <div className="flex-1 min-w-0 pr-4">
+          <header ref={headerRef} className="flex items-center gap-1 px-2 pb-4 group" {...provided.dragHandleProps}>
+            <div className="md:hidden flex items-center justify-center p-1 -ml-1 text-black/30 dark:text-white/30 shrink-0 touch-none">
+              <GripHorizontal size={20} />
+            </div>
+            <div className="flex-1 min-w-0 pr-2">
               <input
                 className="w-full text-[17px] font-semibold text-[var(--color-brand-text)] bg-transparent border-none outline-none focus:ring-2 focus:ring-[var(--color-brand-terracotta)]/40 rounded px-1 -mx-1 truncate"
                 type="text"
@@ -82,7 +85,7 @@ export default function Column({ coluna, index }) {
             </div>
             
             <div 
-              className="relative flex items-center gap-1"
+              className="relative flex items-center gap-1 shrink-0"
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
@@ -162,4 +165,4 @@ export default function Column({ coluna, index }) {
       }}
     </Draggable>
   )
-}
+})

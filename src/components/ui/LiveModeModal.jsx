@@ -374,20 +374,7 @@ export default function LiveModeModal({ isOpen, onClose }) {
             </div>
           )}
 
-          <details className="mt-4 group">
-            <summary className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer list-none text-center">
-              Configurações Avançadas (Servidor)
-            </summary>
-            <div className="pt-3 mt-2 border-t border-gray-100 dark:border-zinc-800">
-              <input
-                type="text"
-                value={liveModeServerUrl}
-                onChange={(e) => setLiveModeServerUrl(e.target.value)}
-                placeholder="wss://..."
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:outline-none text-xs opacity-70 dark:text-white"
-              />
-            </div>
-          </details>
+
         </>
       ) : warningType === 'create' ? (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
