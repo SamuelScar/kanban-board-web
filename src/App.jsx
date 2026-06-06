@@ -234,16 +234,15 @@ function App() {
         onShowLiveMode={() => setIsLiveModeModalOpen(true)}
       />
 
-      <main 
-        ref={scrollRef}
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseLeave}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-4 md:px-8 pb-4 md:pb-8 cursor-default"
-      >
+      <main className="flex-1 relative z-10 overflow-hidden pb-4 md:pb-8 flex flex-col">
         <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
-          <Board />
+          <Board 
+            scrollRef={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+          />
         </DragDropContext>
       </main>
       
