@@ -26,9 +26,21 @@ export const startLiveMode = (roomName, signalingServerUrl) => {
   });
 
   // When connection is fully established
-  provider.on('synced', synced => {
-    // We consider it online once synced
-    useStore.getState().setLiveModeState('online', roomName);
+  provider.on('synced', (syncState) => {
+    console.log('[LiveMode] Synced event fired:', syncState);
+    const isSynced = syncState && syncState.synced;
+    if (isSynced) {
+      useStore.getState().setLiveModeState('online', roomName);
+    }
+  });
+
+  provider.on('peers', (peersInfo) => {
+    console.log('[LiveMode] Peers changed:', peersInfo);
+    // If we have connected peers, we might also consider it online
+    const webrtcPeers = Array.from(provider.webrtcConns.keys());
+    if (webrtcPeers.length > 0) {
+      useStore.getState().setLiveModeState('online', roomName);
+    }
   });
 
   sharedMap.observe(event => {

@@ -174,6 +174,22 @@ export default function Header({
                   <div className="md:hidden border-t border-black/5 dark:border-white/5 my-1"></div>
                   
                   <button
+                    onClick={() => { setShowSettingsMenu(false); onShowLiveMode(); }}
+                    className={`md:hidden w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${liveModeStatus === 'online' ? 'text-green-600 bg-green-500/10 dark:text-green-400 dark:bg-green-500/20' : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10 hover:text-blue-500'}`}
+                  >
+                    <div className="relative flex-shrink-0">
+                      <Users size={16} />
+                      {liveModeStatus === 'online' && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-zinc-800 animate-pulse" />
+                      )}
+                      {liveModeStatus === 'connecting' && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full border border-white dark:border-zinc-800" />
+                      )}
+                    </div>
+                    <span>{liveModeStatus === 'online' ? `Live: ${liveModeRoom}` : "Live Mode P2P"}</span>
+                  </button>
+
+                  <button
                     onClick={() => { playSwitch(); togglePrivacyMode(); setShowSettingsMenu(false); }}
                     className={`md:hidden w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${isPrivacyMode ? 'text-[var(--color-brand-terracotta)] bg-[var(--color-brand-terracotta)]/10' : 'text-black/70 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/10'}`}
                   >
