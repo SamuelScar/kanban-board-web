@@ -15,6 +15,7 @@ import TutorialManager from './components/ui/TutorialManager'
 import CheatSheetModal from './components/ui/CheatSheetModal'
 import PomodoroWidget from './components/ui/PomodoroWidget'
 import LiveModeModal from './components/ui/LiveModeModal'
+import { Toaster } from 'react-hot-toast'
 import { initLocalSyncObserver } from './store/liveModeSync'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { playPluck, playDrop } from './utils/audio'
@@ -230,6 +231,8 @@ function App() {
       />
       
       <PomodoroWidget />
+      
+      <Toaster position="top-right" />
       
       {/* Vercel Analytics & Speed Insights */}
       <Analytics />
