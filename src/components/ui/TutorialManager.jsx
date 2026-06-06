@@ -22,12 +22,8 @@ export default function TutorialManager() {
           doneBtnText: 'Concluir',
           progressText: 'Passo {{current}} de {{total}}',
           allowClose: true,
-          onCloseClick: () => {
-            driverInstance.current.destroy();
-            marcarTutorialVisto();
-          },
-          onDestroyStarted: () => {
-            driverInstance.current.destroy();
+          animate: false, // Desabilita animação que causa travamento de GPU no Safari iOS (devido ao blur)
+          onDestroyed: () => {
             marcarTutorialVisto();
           },
           steps: [

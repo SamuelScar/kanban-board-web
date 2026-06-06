@@ -21,6 +21,10 @@ O design segue a filosofia *"Warm Minimalism"* (Minimalismo Quente), proporciona
 - **Recuperação Segura:** O sistema detecta se algo deu errado com seus dados e evita que você perca todo o seu progresso, mantendo-os seguros até serem restaurados.
 - **Modo "Borrão" (Blur):** Esconda o conteúdo da tela com um único clique para privacidade instantânea em ambientes públicos.
 
+### 🌐 Colaboração e Rede
+- **Live Mode P2P:** Crie ou entre em salas de colaboração em tempo real via WebRTC (Yjs). Seus dados são sincronizados instantaneamente com outros usuários sem a necessidade de um servidor central de banco de dados (P2P).
+- **Sincronização Local Avançada:** Sincronize o estado do quadro diretamente com um arquivo físico (`.json`) no seu computador via File System Access API para backups automáticos fora do navegador.
+
 ### 💾 Gestão de Dados
 - **Templates Customizados:** Salve a estrutura atual das suas colunas como seu "Esqueleto Padrão" para que sempre que resetar a tela, ela carregue o seu formato pessoal.
 - **Importar/Exportar:** Leve seus dados com você em formato JSON puro, texto legível (Markdown) ou migre/importe para o formato nativo do **Trello**.

@@ -4,7 +4,7 @@ import Board from './components/kanban/Board'
 import Header from './components/layout/Header'
 import { AlertTriangle, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ClearBoardDialog from './components/ui/ClearBoardDialog'
 import ConfirmDialog from './components/ui/ConfirmDialog'
 import EducationalModal from './components/ui/EducationalModal'
@@ -15,6 +15,7 @@ import TutorialManager from './components/ui/TutorialManager'
 import CheatSheetModal from './components/ui/CheatSheetModal'
 import PomodoroWidget from './components/ui/PomodoroWidget'
 import LiveModeModal from './components/ui/LiveModeModal'
+import { Toaster } from 'react-hot-toast'
 import { initLocalSyncObserver } from './store/liveModeSync'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { playPluck, playDrop } from './utils/audio'
@@ -135,6 +136,46 @@ function App() {
     return <LockScreen />
   }
 
+  // ── Scroll to Pan (Background Drag) ──────────────────────────
+  const scrollRef = useRef(null)
+  const isDraggingBackground = useRef(false)
+  const startX = useRef(0)
+  const scrollLeft = useRef(0)
+
+  const handleMouseDown = (e) => {
+    if (e.target.closest('article, button, input, textarea, a, summary, details')) return
+    if (!scrollRef.current) return
+    isDraggingBackground.current = true
+    startX.current = e.pageX - scrollRef.current.offsetLeft
+    scrollLeft.current = scrollRef.current.scrollLeft
+    document.body.style.cursor = 'grabbing'
+    document.body.style.userSelect = 'none'
+  }
+
+  const handleMouseLeave = () => {
+    if (isDraggingBackground.current) {
+      isDraggingBackground.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }
+
+  const handleMouseUp = () => {
+    if (isDraggingBackground.current) {
+      isDraggingBackground.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }
+
+  const handleMouseMove = (e) => {
+    if (!isDraggingBackground.current || !scrollRef.current) return
+    e.preventDefault()
+    const x = e.pageX - scrollRef.current.offsetLeft
+    const walk = (x - startX.current) * 1.5
+    scrollRef.current.scrollLeft = scrollLeft.current - walk
+  }
+
   // ── Drag & Drop ──────────────────────────────────────────────
   const onDragStart = () => {
     playPluck()
@@ -193,9 +234,15 @@ function App() {
         onShowLiveMode={() => setIsLiveModeModalOpen(true)}
       />
 
-      <main className="flex-1 relative z-10 overflow-x-auto overflow-y-hidden px-4 md:px-8 pb-4 md:pb-8">
+      <main className="flex-1 relative z-10 overflow-hidden pb-4 md:pb-8 flex flex-col">
         <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
-          <Board />
+          <Board 
+            scrollRef={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+          />
         </DragDropContext>
       </main>
       
@@ -230,6 +277,8 @@ function App() {
       />
       
       <PomodoroWidget />
+      
+      <Toaster position="top-right" />
       
       {/* Vercel Analytics & Speed Insights */}
       <Analytics />

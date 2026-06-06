@@ -5,19 +5,26 @@ import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { playPop } from '../../utils/audio'
 
-export default function Board() {
+export default function Board({ scrollRef, onMouseDown, onMouseLeave, onMouseUp, onMouseMove }) {
   const colunas = useStore((state) => state.colunas)
   const adicionarColuna = useStore((state) => state.adicionarColuna)
 
   return (
     <Droppable droppableId="board" type="column" direction="horizontal">
       {(provided) => (
-        <section
-          className="flex gap-4 md:gap-6 h-full items-start"
-          aria-label="Quadro Kanban"
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-        >
+          <section
+            className="flex gap-4 md:gap-6 h-full items-start overflow-x-auto overflow-y-hidden px-4 md:px-8 cursor-default"
+            aria-label="Quadro Kanban"
+            ref={(el) => {
+              provided.innerRef(el);
+              if (scrollRef) scrollRef.current = el;
+            }}
+            {...provided.droppableProps}
+            onMouseDown={onMouseDown}
+            onMouseLeave={onMouseLeave}
+            onMouseUp={onMouseUp}
+            onMouseMove={onMouseMove}
+          >
           {colunas.map((coluna, index) => (
             <Column key={coluna.id} coluna={coluna} index={index} />
           ))}

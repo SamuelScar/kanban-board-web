@@ -1,6 +1,8 @@
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 import { useStore } from './kanbanStore';
+import { startLobbyHost } from './lobbySync';
+import { toast } from 'react-hot-toast';
 
 let ydoc = null;
 let provider = null;
@@ -8,39 +10,71 @@ let sharedMap = null;
 let isSyncing = false;
 let isObserverInitialized = false;
 
-export const startLiveMode = (roomName, signalingServerUrl) => {
+export const startLiveMode = (publicRoom, internalRoom, signalingServerUrl, isCreating = false) => {
   if (provider) {
     provider.destroy();
     ydoc.destroy();
   }
 
-  // Update Zustand to connecting
-  useStore.getState().setLiveModeState('connecting', roomName);
-  sessionStorage.setItem('kanban_live_room', roomName);
+  useStore.getState().setLiveModeState('connecting', publicRoom);
+  sessionStorage.setItem('kanban_live_room', publicRoom);
+  sessionStorage.setItem('kanban_live_internal_room', internalRoom);
+  sessionStorage.setItem('kanban_live_is_creating', isCreating);
 
   ydoc = new Y.Doc();
   sharedMap = ydoc.getMap('kanbanState');
 
-  provider = new WebrtcProvider(roomName, ydoc, {
+  provider = new WebrtcProvider(internalRoom, ydoc, {
     signaling: [signalingServerUrl]
   });
 
-  // When connection is fully established
+  const userName = useStore.getState().userName;
+  provider.awareness.setLocalStateField('user', { name: userName, isHost: isCreating });
+
   provider.on('synced', (syncState) => {
     console.log('[LiveMode] Synced event fired:', syncState);
     const isSynced = syncState && syncState.synced;
     if (isSynced) {
-      useStore.getState().setLiveModeState('online', roomName);
+      useStore.getState().setLiveModeState('online', publicRoom);
     }
   });
 
   provider.on('peers', (peersInfo) => {
     console.log('[LiveMode] Peers changed:', peersInfo);
-    // If we have connected peers, we might also consider it online
     const webrtcPeers = Array.from(provider.webrtcConns.keys());
     if (webrtcPeers.length > 0) {
-      useStore.getState().setLiveModeState('online', roomName);
+      useStore.getState().setLiveModeState('online', publicRoom);
     }
+  });
+
+  let oldParticipants = [];
+
+  provider.awareness.on('change', () => {
+    const states = provider.awareness.getStates();
+    const participants = [];
+    states.forEach((state, clientId) => {
+      if (state.user && state.user.name) {
+        participants.push({
+          id: clientId.toString(),
+          name: state.user.name,
+          isHost: state.user.isHost || false
+        });
+      }
+    });
+
+    const isOnline = useStore.getState().liveModeStatus === 'online';
+    if (isOnline && oldParticipants.length > 0) {
+      const newIds = participants.map(p => p.id);
+      const leftParticipants = oldParticipants.filter(p => !newIds.includes(p.id));
+      if (leftParticipants.length > 0) {
+        leftParticipants.forEach(p => {
+          toast(`${p.name} saiu da sala`, { icon: '👋' });
+        });
+      }
+    }
+
+    oldParticipants = participants;
+    useStore.getState().setParticipants(participants);
   });
 
   sharedMap.observe(event => {
@@ -54,7 +88,7 @@ export const startLiveMode = (roomName, signalingServerUrl) => {
   });
 
   const estadoAtual = useStore.getState().colunas;
-  if (!sharedMap.has('colunas') && estadoAtual.length > 0) {
+  if (isCreating && !sharedMap.has('colunas') && estadoAtual.length > 0) {
     sharedMap.set('colunas', estadoAtual);
   }
 
@@ -69,7 +103,11 @@ export const disconnectLiveMode = () => {
     ydoc = null;
     sharedMap = null;
   }
+  
   sessionStorage.removeItem('kanban_live_room');
+  sessionStorage.removeItem('kanban_live_internal_room');
+  sessionStorage.removeItem('kanban_live_is_creating');
+  useStore.getState().setParticipants([]);
   useStore.getState().setLiveModeState('offline', null);
 };
 
@@ -77,11 +115,16 @@ export const initLocalSyncObserver = () => {
   if (isObserverInitialized) return;
   isObserverInitialized = true;
 
-  // Tenta reconectar automaticamente no refresh da página se houver sala salva
   const savedRoom = sessionStorage.getItem('kanban_live_room');
+  const savedInternalRoom = sessionStorage.getItem('kanban_live_internal_room');
   const savedServer = useStore.getState().liveModeServerUrl;
-  if (savedRoom) {
-    startLiveMode(savedRoom, savedServer);
+  const isCreating = sessionStorage.getItem('kanban_live_is_creating') === 'true';
+  
+  if (savedRoom && savedInternalRoom) {
+    if (isCreating) {
+      startLobbyHost(savedRoom, savedInternalRoom, savedServer);
+    }
+    startLiveMode(savedRoom, savedInternalRoom, savedServer, isCreating);
   }
 
   useStore.subscribe((estadoAtual, estadoAnterior) => {
