@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 let lobbyDoc = null;
 let lobbyProvider = null;
 let approvalsMap = null;
-let currentSecretRoomId = null;
+let currentInternalRoomId = null;
 
 const connectLobby = (roomName, signalingServerUrl) => {
   if (lobbyProvider) disconnectLobby();
@@ -27,15 +27,15 @@ export const disconnectLobby = () => {
   lobbyProvider = null;
   lobbyDoc = null;
   approvalsMap = null;
-  currentSecretRoomId = null;
+  currentInternalRoomId = null;
 };
 
 // ============================================================================
 // LÓGICA DO ANFITRIÃO (CRIADOR DA SALA)
 // ============================================================================
 
-export const startLobbyHost = (roomName, secretRoomId, signalingServerUrl) => {
-  currentSecretRoomId = secretRoomId;
+export const startLobbyHost = (roomName, internalRoomId, signalingServerUrl) => {
+  currentInternalRoomId = internalRoomId;
   connectLobby(roomName, signalingServerUrl);
   
   useStore.getState().setPendingRequests([]);
@@ -100,8 +100,8 @@ const updateHostPendingRequests = () => {
 };
 
 export const approveGuest = (guestIdStr) => {
-  if (!approvalsMap || !currentSecretRoomId) return;
-  approvalsMap.set(guestIdStr, currentSecretRoomId);
+  if (!approvalsMap || !currentInternalRoomId) return;
+  approvalsMap.set(guestIdStr, currentInternalRoomId);
   toast.dismiss(`req-${guestIdStr}`);
   updateHostPendingRequests(); // Remove da lista de pendentes localmente
 };
@@ -134,7 +134,7 @@ export const joinLobbyAsGuest = (roomName, guestName, signalingServerUrl, onAppr
         disconnectLobby();
         onRejection();
       } else {
-        // Se a decisão não for REJECTED, é a chave da sala secreta
+        // Se a decisão não for REJECTED, é a chave da sala interna
         disconnectLobby();
         onApproval(decision);
       }

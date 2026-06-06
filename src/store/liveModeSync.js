@@ -10,7 +10,7 @@ let sharedMap = null;
 let isSyncing = false;
 let isObserverInitialized = false;
 
-export const startLiveMode = (publicRoom, secretRoom, signalingServerUrl, isCreating = false) => {
+export const startLiveMode = (publicRoom, internalRoom, signalingServerUrl, isCreating = false) => {
   if (provider) {
     provider.destroy();
     ydoc.destroy();
@@ -18,13 +18,13 @@ export const startLiveMode = (publicRoom, secretRoom, signalingServerUrl, isCrea
 
   useStore.getState().setLiveModeState('connecting', publicRoom);
   sessionStorage.setItem('kanban_live_room', publicRoom);
-  sessionStorage.setItem('kanban_live_secret_room', secretRoom);
+  sessionStorage.setItem('kanban_live_internal_room', internalRoom);
   sessionStorage.setItem('kanban_live_is_creating', isCreating);
 
   ydoc = new Y.Doc();
   sharedMap = ydoc.getMap('kanbanState');
 
-  provider = new WebrtcProvider(secretRoom, ydoc, {
+  provider = new WebrtcProvider(internalRoom, ydoc, {
     signaling: [signalingServerUrl]
   });
 
@@ -105,7 +105,7 @@ export const disconnectLiveMode = () => {
   }
   
   sessionStorage.removeItem('kanban_live_room');
-  sessionStorage.removeItem('kanban_live_secret_room');
+  sessionStorage.removeItem('kanban_live_internal_room');
   sessionStorage.removeItem('kanban_live_is_creating');
   useStore.getState().setParticipants([]);
   useStore.getState().setLiveModeState('offline', null);
@@ -116,15 +116,15 @@ export const initLocalSyncObserver = () => {
   isObserverInitialized = true;
 
   const savedRoom = sessionStorage.getItem('kanban_live_room');
-  const savedSecretRoom = sessionStorage.getItem('kanban_live_secret_room');
+  const savedInternalRoom = sessionStorage.getItem('kanban_live_internal_room');
   const savedServer = useStore.getState().liveModeServerUrl;
   const isCreating = sessionStorage.getItem('kanban_live_is_creating') === 'true';
   
-  if (savedRoom && savedSecretRoom) {
+  if (savedRoom && savedInternalRoom) {
     if (isCreating) {
-      startLobbyHost(savedRoom, savedSecretRoom, savedServer);
+      startLobbyHost(savedRoom, savedInternalRoom, savedServer);
     }
-    startLiveMode(savedRoom, savedSecretRoom, savedServer, isCreating);
+    startLiveMode(savedRoom, savedInternalRoom, savedServer, isCreating);
   }
 
   useStore.subscribe((estadoAtual, estadoAnterior) => {

@@ -49,11 +49,13 @@ export default function LiveModeModal({ isOpen, onClose }) {
   }
 
   const confirmCreateRoom = () => {
-    const randomLobby = `sala-${Math.floor(Math.random() * 90000) + 10000}`
-    const secretRoomId = `sec-${Math.random().toString(36).substring(2, 15)}`
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    const randomLobby = `sala-${Math.floor((array[0] / (0xffffffff + 1)) * 90000) + 10000}`
+    const internalRoomId = `sec-${crypto.randomUUID()}`
     
-    startLobbyHost(randomLobby, secretRoomId, liveModeServerUrl)
-    startLiveMode(randomLobby, secretRoomId, liveModeServerUrl, true)
+    startLobbyHost(randomLobby, internalRoomId, liveModeServerUrl)
+    startLiveMode(randomLobby, internalRoomId, liveModeServerUrl, true)
     
     setWarningType('none')
   }
@@ -75,10 +77,10 @@ export default function LiveModeModal({ isOpen, onClose }) {
       room, 
       userName, 
       liveModeServerUrl, 
-      (secretRoom) => {
+      (internalRoom) => {
         // Aprovado
         setGuestStatus('none')
-        startLiveMode(room, secretRoom, liveModeServerUrl, false)
+        startLiveMode(room, internalRoom, liveModeServerUrl, false)
       },
       () => {
         // Rejeitado
